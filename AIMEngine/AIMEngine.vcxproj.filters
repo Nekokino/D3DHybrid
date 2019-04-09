@@ -7,6 +7,24 @@
     <Filter Include="Header">
       <UniqueIdentifier>{f40abfc4-6b7d-4c64-8968-03837b6cbfd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02 Device">
+      <UniqueIdentifier>{c1c28859-3712-4a3d-ad2f-c34072f390b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03 Resource">
+      <UniqueIdentifier>{2444be78-6a9a-46b9-8c82-fd03d2db1963}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03 Resource\01 Resource">
+      <UniqueIdentifier>{9ded3521-815d-43b0-93b1-2ed6095c509b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03 Resource\01 Resource\01 Mesh">
+      <UniqueIdentifier>{5f6c4fda-ec2c-4694-b711-b1c186566baf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03 Resource\01 Resource\02 Shader">
+      <UniqueIdentifier>{d8051a9a-587f-45ce-a045-d047f152eb0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04 Manager">
+      <UniqueIdentifier>{a144cbba-c252-48a5-a885-09c6c163228c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -21,10 +39,88 @@
     <ClInclude Include="Macro.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="Vec4.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineMath.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec3.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec2.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="RefCounter.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager.h">
+      <Filter>03 Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMDevice.h">
+      <Filter>02 Device</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMMesh.h">
+      <Filter>03 Resource\01 Resource\01 Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMShader.h">
+      <Filter>03 Resource\01 Resource\02 Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManager.h">
+      <Filter>02 Device</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>03 Resource\01 Resource\02 Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Flag.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PathManager.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
       <Filter>01 Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec4.cpp">
+      <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec3.cpp">
+      <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec2.cpp">
+      <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix.cpp">
+      <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="RefCounter.cpp">
+      <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager.cpp">
+      <Filter>03 Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMDevice.cpp">
+      <Filter>02 Device</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMMesh.cpp">
+      <Filter>03 Resource\01 Resource\01 Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMShader.cpp">
+      <Filter>03 Resource\01 Resource\02 Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderManager.cpp">
+      <Filter>02 Device</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>03 Resource\01 Resource\02 Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="PathManager.cpp">
+      <Filter>04 Manager</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

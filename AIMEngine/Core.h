@@ -5,7 +5,7 @@
 // 알아낸거
 // DLL을 써서 그런지는 잘 모르겠지만,
 // 싱글톤 쓰기 싫어서 static class로 만들었는데,
-// DLL을 가져다 쓸 때 인자가 있는 전역 함수를 부르게 되면 링크 에러가 뜬다.
+// DLL을 가져다 쓸 때 인자가 있는 전역 함수를 부르게 되면 링크 에러가 뜬다. -> 어 잠깐. 이거 프로젝트 오류때문에 해결했는데 이거 확인해봐야할거같은데.
 // 그럼 싱글톤을 만드는게 맞다.
 // 왜냐하면 이건 진짜 하나만 있어야하는거니까
 
@@ -36,6 +36,7 @@ private:
 	HINSTANCE hInst;
 	HWND hWnd;
 	Resolution Rs;
+	float ClearColor[4];
 	static bool Loop;
 
 public:
@@ -49,6 +50,17 @@ public:
 		return true;
 	}
 
+	void Logic();
+
+	void SetClearColor(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a);
+
+private:
+	int Input(float _Time);
+	int Update(float _Time);
+	int LateUpdate(float _Time);
+	int Collision(float _Time);
+	int Render(float _Time);
+
 
 private:
 	void Register(const TCHAR* _ClassName, int _IconID, int _SmallIconID);
@@ -57,8 +69,10 @@ private:
 
 	// 싱글톤 선언을 굳이 할 필요가 있나? 뭐 하나만 만들어지는게 맞는건 맞는데..
 	// 그래서 저는 예전에 배운 스태틱으로 다 조져버리기를 쓰겠다.
-	// 이러면 메모리에 상주하지만 내가 해ㅇ제해줄 필요도 없다.
+	// 이러면 메모리에 상주하지만 내가 해제해줄 필요도 없다.
 	// 애초에 코어가 프로그램을 끄기 전까지는 해제할일도 없다.
+
+	// -> 헤더 처음으로 가서 읽자.
 
 	// (참고)
 	// 싱글톤은 

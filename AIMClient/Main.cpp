@@ -20,18 +20,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow)
 {
-	if (!(Core::Inst()->Init(hInstance, TEXT("Eek"), TEXT("Eek"), 1280, 720, IDI_ICON1, IDI_ICON1, true)))
+	new int;
+
+	if (false == (Core::Inst()->Init(hInstance, TEXT("Eek"), TEXT("Eek"), 1280, 720, IDI_ICON1, IDI_ICON1, true)))
 	{
 		Core::Inst()->DestroyInst();
 		return 0;
 	}
 
-	// 왜인지는 모르겠지만.
-	// 프로젝트 설정에서 유니코드로 하면 링크오류가 뜬다.
-	// 멀티바이트로 하면 잘 된다.
-	// 왜??????
-
 	int	Return = Core::Inst()->Run();
+
+	Core::DestroyInst();
 
 	return Return;
 }

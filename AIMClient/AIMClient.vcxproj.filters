@@ -28,4 +28,7 @@
       <Filter>Resource</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="V.txt" />
+  </ItemGroup>
 </Project>

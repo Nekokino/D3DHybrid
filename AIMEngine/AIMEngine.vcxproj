@@ -29,27 +29,27 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -154,13 +154,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AIMDevice.h" />
+    <ClInclude Include="AIMMesh.h" />
+    <ClInclude Include="AIMShader.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="EngineHeader.h" />
+    <ClInclude Include="EngineMath.h" />
     <ClInclude Include="Macro.h" />
+    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="PathManager.h" />
+    <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="RefCounter.h" />
+    <ClInclude Include="RenderManager.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Struct.h" />
+    <ClInclude Include="Vec4.h" />
+    <ClInclude Include="Vec3.h" />
+    <ClInclude Include="Vec2.h" />
+    <ClInclude Include="Flag.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIMDevice.cpp" />
+    <ClCompile Include="AIMMesh.cpp" />
+    <ClCompile Include="AIMShader.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Matrix.cpp" />
+    <ClCompile Include="PathManager.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="RefCounter.cpp" />
+    <ClCompile Include="RenderManager.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="Vec4.cpp" />
+    <ClCompile Include="Vec3.cpp" />
+    <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
