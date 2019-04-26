@@ -2,6 +2,7 @@
 
 #include "EngineHeader.h"
 #include "RefCounter.h"
+#include "RefStruct.h"
 
 class AIMShader;
 class Engine_DLL ShaderManager
@@ -9,6 +10,7 @@ class Engine_DLL ShaderManager
 private:
 	static std::unordered_map<std::string, Ezptr<AIMShader>> ShaderMap;
 	static std::unordered_map<std::string, ID3D11InputLayout*> InputLayoutMap;
+	static std::unordered_map<std::string, Ezptr<ConstBuffer>> ConstBufferMap;
 
 	static std::vector<D3D11_INPUT_ELEMENT_DESC> InputDescVec;
 	static UINT InputSize;
@@ -28,6 +30,10 @@ public:
 	// 레이아웃 이름, 적용할 쉐이더
 	static bool CreateInputLayout(const std::string& _Name, const std::string& _ShaderKey);
 	static ID3D11InputLayout* FindInputLayout(const std::string& _Name);
+
+	static bool CreateConstBuffer(const std::string& _Name, int _Size, int _Register, int _ConstantShader);
+	static bool UpdateConstBuffer(const std::string& _Name, void* _Data);
+	static Ezptr<ConstBuffer> FindConstBuffer(const std::string& _Name);
 
 	static void Release();
 public:

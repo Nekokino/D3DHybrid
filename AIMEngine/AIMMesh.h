@@ -36,15 +36,35 @@ public:
 
 private:
 	std::vector<MeshContainer*> MeshContainerVec;
+	std::string ShaderName;
+	std::string InputLayoutName;
 
 public:
-	bool CreateMesh(const std::string& _Name, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void* _Vtx,
+	std::string GetShaderName() const
+	{
+		return ShaderName;
+	}
+	std::string GetInputLayoutName() const
+	{
+		return InputLayoutName;
+	}
+	size_t GetContainerCount() const
+	{
+		return MeshContainerVec.size();
+	}
+	size_t GetSubsetCount(int _Container = 0) const
+	{
+		return MeshContainerVec[_Container]->IBVec.size();
+	}
+
+public:
+	bool CreateMesh(const std::string& _Name, const std::string& _ShaderName, const std::string& _InputLayoutName, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void* _Vtx,
 		int _IdxSize = 0, int _IdxCount = 0, D3D11_USAGE _IdxUsage = D3D11_USAGE_DEFAULT, DXGI_FORMAT _Format = DXGI_FORMAT_UNKNOWN, void* _Idx = nullptr);
 
 	// 모든 컨테이너의 모든 서브셋을 다 그리는 렌더
 	void Render();
 	// 특정 컨테이너의 특정 서브셋을 그리는 렌더
-	void Render(int _Container, int _SubSet = 0);
+	void Render(size_t _Container, size_t _SubSet = 0);
 
 private:
 	bool CreateVertexBuffer(int _Size, int _Count, D3D11_USAGE _Usage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void* _Data);

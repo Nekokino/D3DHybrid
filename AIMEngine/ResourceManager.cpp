@@ -15,7 +15,7 @@ bool ResourceManager::Init()
 
 	int Idx[3] = { 0, 1, 2 };
 
-	CreateMesh("ColorTriangle", sizeof(ColorVertex), 3, D3D11_USAGE_DEFAULT, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, TriColor, 4, 3, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R32_UINT, Idx);
+	CreateMesh("ColorTriangle", "StandardColorShader", "StandardColorLayout", sizeof(ColorVertex), 3, D3D11_USAGE_DEFAULT, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, TriColor, 4, 3, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R32_UINT, Idx);
 
 	return true;
 }
@@ -25,7 +25,7 @@ void ResourceManager::Release()
 	MeshMap.clear();
 }
 
-bool ResourceManager::CreateMesh(const std::string & _Name, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Vtx, int _IdxSize, int _IdxCount, D3D11_USAGE _IdxUsage, DXGI_FORMAT _Format, void * _Idx)
+bool ResourceManager::CreateMesh(const std::string & _Name, const std::string& _ShaderName, const std::string& _InputLayoutName, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Vtx, int _IdxSize, int _IdxCount, D3D11_USAGE _IdxUsage, DXGI_FORMAT _Format, void * _Idx)
 {
 	Ezptr<AIMMesh> Mesh = FindMesh(_Name);
 
@@ -37,7 +37,7 @@ bool ResourceManager::CreateMesh(const std::string & _Name, int _VtxSize, int _V
 
 	Mesh = new AIMMesh;
 
-	if (false == Mesh->CreateMesh(_Name, _VtxSize, _VtxCount, _VtxUsage, _Primitive, _Vtx, _IdxSize, _IdxCount, _IdxUsage, _Format, _Idx))
+	if (false == Mesh->CreateMesh(_Name, _ShaderName, _InputLayoutName, _VtxSize, _VtxCount, _VtxUsage, _Primitive, _Vtx, _IdxSize, _IdxCount, _IdxUsage, _Format, _Idx))
 	{
 		delete Mesh;
 		return false;

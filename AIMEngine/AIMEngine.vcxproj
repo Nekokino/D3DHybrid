@@ -154,36 +154,61 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AIMComponent.h" />
     <ClInclude Include="AIMDevice.h" />
+    <ClInclude Include="AIMLayer.h" />
     <ClInclude Include="AIMMesh.h" />
+    <ClInclude Include="AIMObject.h" />
+    <ClInclude Include="AIMRenderer.h" />
+    <ClInclude Include="AIMScene.h" />
     <ClInclude Include="AIMShader.h" />
+    <ClInclude Include="AIMTransform.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="EngineHeader.h" />
     <ClInclude Include="EngineMath.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="PathManager.h" />
+    <ClInclude Include="RefStruct.h" />
+    <ClInclude Include="SceneComponent.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="RefCounter.h" />
     <ClInclude Include="RenderManager.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Struct.h" />
+    <ClInclude Include="TimeManager.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="UserComponent.h" />
     <ClInclude Include="Vec4.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Flag.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIMComponent.cpp" />
     <ClCompile Include="AIMDevice.cpp" />
+    <ClCompile Include="AIMLayer.cpp" />
     <ClCompile Include="AIMMesh.cpp" />
+    <ClCompile Include="AIMObject.cpp" />
+    <ClCompile Include="AIMRenderer.cpp" />
+    <ClCompile Include="AIMScene.cpp" />
     <ClCompile Include="AIMShader.cpp" />
+    <ClCompile Include="AIMTransform.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="PathManager.cpp" />
+    <ClCompile Include="SceneComponent.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="RefCounter.cpp" />
     <ClCompile Include="RenderManager.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="TimeManager.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="UserComponent.cpp" />
     <ClCompile Include="Vec4.cpp" />
     <ClCompile Include="Vec3.cpp" />
     <ClCompile Include="Vec2.cpp" />

@@ -4,6 +4,9 @@
 #include "RenderManager.h"
 #include "PathManager.h"
 #include "ShaderManager.h"
+#include "TimeManager.h"
+#include "Timer.h"
+#include "SceneManager.h"
 #include "AIMShader.h"
 #include "AIMMesh.h"
 
@@ -24,6 +27,8 @@ Core::~Core()
 	// 안그러면 크래쉬가 난다.
 	// 아마 디바이스가 없어지면서 에러가 생기는게 아닐까 싶다.
 
+	SceneManager::Release();
+	TimeManager::Release();
 	RenderManager::Release();
 	ResourceManager::Release();
 	PathManager::Release();
@@ -71,6 +76,19 @@ bool Core::Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _Win
 	if (false == RenderManager::Init())
 	{
 		tassertmsg(true, "RenderManager Init Failed");
+		return false;
+	}
+
+	if (false == TimeManager::Init())
+	{
+		tassertmsg(true, "TimeManager Init Failed");
+		return false;
+	}
+
+
+	if (false == SceneManager::Init())
+	{
+		tassertmsg(true, "SceneManager Init Failed");
 		return false;
 	}
 
@@ -166,35 +184,59 @@ LRESULT Core::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void Core::Logic()
 {
-	Input(0.0f);
-	Update(0.0f);
-	LateUpdate(0.0f);
-	Collision(0.0f);
-	Render(0.0f);
+	Ezptr<Timer> Timer = TimeManager::FindTimer("MainThreadTimer");
+
+	Timer->Update();
+
+	float Time = Timer->GetTime();
+
+	Input(Time);
+	Update(Time);
+	LateUpdate(Time);
+	Collision(Time);
+	PrevRender(Time);
+	Render(Time);
 }
 
 int Core::Input(float _Time)
 {
+	SceneManager::Input(_Time);
+
 	return 0;
 }
 
 int Core::Update(float _Time)
 {
+	SceneManager::Update(_Time);
+
 	return 0;
 }
 
 int Core::LateUpdate(float _Time)
 {
+	SceneManager::LateUpdate(_Time);
+
 	return 0;
 }
 
 int Core::Collision(float _Time)
 {
+	SceneManager::Collision(_Time);
+
+	return 0;
+}
+
+int Core::PrevRender(float _Time)
+{
+	SceneManager::PrevRender(_Time);
+
 	return 0;
 }
 
 int Core::Render(float _Time)
 {
+	SceneManager::Render(_Time);
+
 	GetDeviceInst->Clear(ClearColor);
 
 	Ezptr<AIMShader> Shader = ShaderManager::FindShader("StandardColorShader");

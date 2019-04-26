@@ -32,3 +32,12 @@ typedef struct Engine_DLL _tagColorVertex
 
 	}
 }ColorVertex, *PColorVertex;
+
+typedef struct Engine_DLL _tagTransformConstBuffer
+{
+	Matrix World;
+	Matrix View;
+	Matrix Projection;
+	Matrix WV;
+	Matrix WVP;
+}TransformConstBuffer, *PTransformConstBuffer;

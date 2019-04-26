@@ -4,9 +4,6 @@
     <Filter Include="01 Core">
       <UniqueIdentifier>{584c4d67-8226-4a3f-b0d7-a23cb79ec650}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header">
-      <UniqueIdentifier>{f40abfc4-6b7d-4c64-8968-03837b6cbfd9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02 Device">
       <UniqueIdentifier>{c1c28859-3712-4a3d-ad2f-c34072f390b5}</UniqueIdentifier>
     </Filter>
@@ -25,37 +22,58 @@
     <Filter Include="04 Manager">
       <UniqueIdentifier>{a144cbba-c252-48a5-a885-09c6c163228c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05 Scene">
+      <UniqueIdentifier>{1e34f254-3098-4bcc-b60c-da322498146e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Object">
+      <UniqueIdentifier>{5cb988f0-ed2d-4df2-a6e3-19075de5d123}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Object\01 Component">
+      <UniqueIdentifier>{654f0c20-53fc-4c34-b054-76445f092a70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Object\01 Component\01 Renderer">
+      <UniqueIdentifier>{f4bb9c80-c69f-4ea4-aa15-a26187cc32f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99 Header">
+      <UniqueIdentifier>{f40abfc4-6b7d-4c64-8968-03837b6cbfd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Object\01 Component\02 Transform">
+      <UniqueIdentifier>{bceaab67-7737-42c3-9c31-d8d35092158d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Object\01 Component\03 User">
+      <UniqueIdentifier>{0d0acd09-c942-4785-8cdf-b87fef75ca9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
       <Filter>01 Core</Filter>
     </ClInclude>
     <ClInclude Include="EngineHeader.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Struct.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Macro.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Vec4.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="EngineMath.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Vec3.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Vec2.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="Matrix.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="RefCounter.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
       <Filter>03 Resource</Filter>
@@ -76,10 +94,49 @@
       <Filter>03 Resource\01 Resource\02 Shader</Filter>
     </ClInclude>
     <ClInclude Include="Flag.h">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClInclude>
     <ClInclude Include="PathManager.h">
       <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeManager.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMLayer.h">
+      <Filter>05 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMScene.h">
+      <Filter>05 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneComponent.h">
+      <Filter>05 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>05 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMObject.h">
+      <Filter>06 Object</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMComponent.h">
+      <Filter>06 Object\01 Component</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMRenderer.h">
+      <Filter>06 Object\01 Component\01 Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMTransform.h">
+      <Filter>06 Object\01 Component\02 Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="RefStruct.h">
+      <Filter>99 Header</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="UserComponent.h">
+      <Filter>06 Object\01 Component\03 User</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -87,19 +144,19 @@
       <Filter>01 Core</Filter>
     </ClCompile>
     <ClCompile Include="Vec4.cpp">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClCompile>
     <ClCompile Include="Vec3.cpp">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClCompile>
     <ClCompile Include="Vec2.cpp">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClCompile>
     <ClCompile Include="Matrix.cpp">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClCompile>
     <ClCompile Include="RefCounter.cpp">
-      <Filter>Header</Filter>
+      <Filter>99 Header</Filter>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>03 Resource</Filter>
@@ -121,6 +178,42 @@
     </ClCompile>
     <ClCompile Include="PathManager.cpp">
       <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeManager.cpp">
+      <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMLayer.cpp">
+      <Filter>05 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMScene.cpp">
+      <Filter>05 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneComponent.cpp">
+      <Filter>05 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>05 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMObject.cpp">
+      <Filter>06 Object</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMComponent.cpp">
+      <Filter>06 Object\01 Component</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMRenderer.cpp">
+      <Filter>06 Object\01 Component\01 Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMTransform.cpp">
+      <Filter>06 Object\01 Component\02 Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="UserComponent.cpp">
+      <Filter>06 Object\01 Component\03 User</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

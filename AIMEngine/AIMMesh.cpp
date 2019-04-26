@@ -54,9 +54,11 @@ AIMMesh::~AIMMesh()
 }
 
 
-bool AIMMesh::CreateMesh(const std::string & _Name, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Vtx, int _IdxSize, int _IdxCount, D3D11_USAGE _IdxUsage, DXGI_FORMAT _Format, void * _Idx)
+bool AIMMesh::CreateMesh(const std::string & _Name, const std::string& _ShaderName, const std::string& _InputLayoutName, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Vtx, int _IdxSize, int _IdxCount, D3D11_USAGE _IdxUsage, DXGI_FORMAT _Format, void * _Idx)
 {
 	NameTag = _Name;
+	ShaderName = _ShaderName;
+	InputLayoutName = _InputLayoutName;
 
 	MeshContainer* Container = new MeshContainer;
 
@@ -110,7 +112,7 @@ void AIMMesh::Render()
 	}
 }
 
-void AIMMesh::Render(int _Container, int _SubSet)
+void AIMMesh::Render(size_t _Container, size_t _SubSet)
 {
 	MeshContainer* Container = MeshContainerVec[_Container];
 

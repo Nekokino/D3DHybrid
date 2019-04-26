@@ -4,7 +4,7 @@ VS_Out_Color StandardColorVS(VS_In_Color _In)
 {
     VS_Out_Color Out = (VS_Out_Color) 0.0f;
 
-    Out.Pos = float4(_In.Pos, 1.0f);
+    Out.Pos = mul(float4(_In.Pos, 1.0f), WVP);
     Out.Color = _In.Color;
 
 	return Out;

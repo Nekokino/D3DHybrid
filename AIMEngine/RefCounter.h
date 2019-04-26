@@ -27,6 +27,10 @@ public:
 
 public:
 	std::string NameTag;
+	// false라면 제거과정까지
+	bool Alive = true;
+	// false라면 업데이트 안함.
+	bool Enable = true;
 
 protected:
 	unsigned int Count;
@@ -45,17 +49,43 @@ public:
 		return NameTag;
 	}
 
+	bool IsAlive()
+	{
+		return Alive;
+	}
+
+	bool IsEnable()
+	{
+		return Enable;
+	}
+
+	void SetAlive(bool _Value)
+	{
+		Alive = _Value;
+	}
+
+	void SetEnable(bool _Value)
+	{
+		Enable = _Value;
+	}
+
 protected:
 	RefCounter();
 	RefCounter(const RefCounter& _Other);
 	virtual ~RefCounter() = 0; // 이거를 직접 생성할일은 없음.
 };
 
+
+// dllexport 클래스는 모든 멤버함수와 정적 데이터 멤버가 export 된다
+// 그러므로 동일한 프로그램상에서 모든 멤버가 정의되어야 한다.
+// 그러니까 ezptr에 dllexport를 선언해버리면 클라이언트에서 클라이언트에서 사용할 새로운 클래스를 사용하면 링커에러가 난다.
+// 그럼 얘를 exportable 클래스로 선언하면 안된다.
+// 근데 dll 내에서는 dllexport던 dllimport던을 써야하지않나?
+// 일단 이렇게 쓰면 에러는 안나지만 내가 편법을 쓰는 것 같다.
+// https://elky.tistory.com/270 참고
 template<typename T>
-class Engine_DLL Ezptr
+class Ezptr
 {
-
-
 private:
 	T* ptr;
 

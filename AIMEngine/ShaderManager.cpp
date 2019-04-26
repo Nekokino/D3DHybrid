@@ -4,6 +4,7 @@
 
 std::unordered_map<std::string, Ezptr<AIMShader>> ShaderManager::ShaderMap;
 std::unordered_map<std::string, ID3D11InputLayout*> ShaderManager::InputLayoutMap;
+std::unordered_map<std::string, Ezptr<ConstBuffer>> ShaderManager::ConstBufferMap;
 
 std::vector<D3D11_INPUT_ELEMENT_DESC> ShaderManager::InputDescVec;
 UINT ShaderManager::InputSize = 0;
@@ -29,8 +30,34 @@ bool ShaderManager::Init()
 		return false;
 	}
 
+	CreateConstBuffer("Transform", sizeof(TransformConstBuffer), 0, CS_VERTEX | CS_PIXEL);
+
+
 	return true;
 }
+
+
+void ShaderManager::Release()
+{
+	ShaderMap.clear();
+
+	std::unordered_map<std::string, ID3D11InputLayout*>::iterator StartIter = InputLayoutMap.begin();
+	std::unordered_map<std::string, ID3D11InputLayout*>::iterator EndIter = InputLayoutMap.end();
+
+	for (; StartIter != EndIter; ++StartIter)
+	{
+		if (StartIter->second != nullptr)
+		{
+			//Release 안해줘도 문제가 없네? 어디서 지우나?
+			//StartIter->second->Release();
+			StartIter->second = nullptr;
+		}
+	}
+
+	InputLayoutMap.clear();
+	ConstBufferMap.clear();
+}
+
 
 bool ShaderManager::LoadShader(const std::string & _Name, const TCHAR * _FileName, char * _Entry[ST_END], const std::string & _PathKey)
 {
@@ -103,7 +130,7 @@ bool ShaderManager::CreateInputLayout(const std::string & _Name, const std::stri
 		return false;
 	}
 
-	if (FAILED(GetAIMDevice->CreateInputLayout(&InputDescVec[0], InputDescVec.size(), Shader->GetVSCode(), Shader->GetVsCodeSize(), &Layout)))
+	if (FAILED(GetAIMDevice->CreateInputLayout(&InputDescVec[0], (UINT)InputDescVec.size(), Shader->GetVSCode(), Shader->GetVsCodeSize(), &Layout)))
 	{
 		tassertmsg(true, "InputLayout Create Failed");
 		return false;
@@ -129,21 +156,83 @@ ID3D11InputLayout * ShaderManager::FindInputLayout(const std::string & _Name)
 	return FindIter->second;
 }
 
-void ShaderManager::Release()
+bool ShaderManager::CreateConstBuffer(const std::string & _Name, int _Size, int _Register, int _ConstantShader)
 {
-	ShaderMap.clear();
+	Ezptr<ConstBuffer> Buffer = FindConstBuffer(_Name);
 
-	std::unordered_map<std::string, ID3D11InputLayout*>::iterator StartIter = InputLayoutMap.begin();
-	std::unordered_map<std::string, ID3D11InputLayout*>::iterator EndIter = InputLayoutMap.end();
-
-	for (; StartIter != EndIter; ++StartIter)
+	if (Buffer != nullptr)
 	{
-		if (StartIter->second != nullptr)
-		{
-			StartIter->second->Release();
-			StartIter->second = nullptr;
-		}
+		tassertmsg(true, "Overlapped ConstBuffer Name");
+		return false;
 	}
 
-	InputLayoutMap.clear();
+	Buffer = new ConstBuffer;
+
+	Buffer->Size = _Size;
+	Buffer->Register = _Register;
+	Buffer->Constant = _ConstantShader;
+	Buffer->Name = _Name;
+
+	Buffer->Data = new char[_Size];
+
+	D3D11_BUFFER_DESC Desc = {};
+
+	Desc.ByteWidth = _Size;
+	Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	if (FAILED(GetAIMDevice->CreateBuffer(&Desc, nullptr, &Buffer->Buffer)))
+	{
+		delete Buffer->Data;
+		tassertmsg(true, "Create ConstBuffer Failed");
+		return false;
+	}
+
+	ConstBufferMap.insert(std::unordered_map<std::string, Ezptr<ConstBuffer>>::value_type(_Name, Buffer));
+
+	return true;
+}
+
+bool ShaderManager::UpdateConstBuffer(const std::string & _Name, void * _Data)
+{
+	Ezptr<ConstBuffer> Buffer = FindConstBuffer(_Name);
+
+	if (Buffer == nullptr)
+	{
+		tassertmsg(true, "Invalid ConstBuffer");
+		return false;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE Map = {};
+
+	GetAIMContext->Map(Buffer->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Map);
+
+	memcpy(Map.pData, _Data, Buffer->Size);
+
+	GetAIMContext->Unmap(Buffer->Buffer, 0);
+
+	if (Buffer->Constant & CS_VERTEX)
+	{
+		GetAIMContext->VSSetConstantBuffers(Buffer->Register, 1, &Buffer->Buffer);
+	}
+
+	if (Buffer->Constant & CS_PIXEL)
+	{
+		GetAIMContext->PSSetConstantBuffers(Buffer->Register, 1, &Buffer->Buffer);
+	}
+
+	return true;
+}
+
+Ezptr<ConstBuffer> ShaderManager::FindConstBuffer(const std::string & _Name)
+{
+	std::unordered_map<std::string, Ezptr<ConstBuffer>>::iterator FindIter = ConstBufferMap.find(_Name);
+
+	if (FindIter == ConstBufferMap.end())
+	{
+		return nullptr;
+	}
+
+	return FindIter->second;
 }

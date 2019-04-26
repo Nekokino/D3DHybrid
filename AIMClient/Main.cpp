@@ -1,6 +1,11 @@
 #include <Core.h>
 #include "resource.h"
 
+#include <AIMScene.h>
+#include <SceneManager.h>
+
+#include "MainScene.h"
+
 #ifdef _DEBUG
 	#ifdef _M_IX86
 		#pragma comment(lib, "AIMEngineD32")
@@ -22,11 +27,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 	new int;
 
-	if (false == (Core::Inst()->Init(hInstance, TEXT("Eek"), TEXT("Eek"), 1280, 720, IDI_ICON1, IDI_ICON1, true)))
+	if (false == (Core::Inst()->Init(hInstance, TEXT("Hello"), TEXT("Eek"), 1280, 720, IDI_ICON1, IDI_ICON1, true)))
 	{
 		Core::Inst()->DestroyInst();
 		return 0;
 	}
+
+	SceneManager::AddSceneComponent<MainScene>();
 
 	int	Return = Core::Inst()->Run();
 

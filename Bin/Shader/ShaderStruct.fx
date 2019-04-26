@@ -14,3 +14,12 @@ struct PS_Out
 {
     float4 Color : SV_TARGET;
 };
+
+cbuffer Transform : register(b0)
+{
+    matrix World;
+    matrix View;
+    matrix Projection;
+    matrix WV;
+    matrix WVP;
+}
