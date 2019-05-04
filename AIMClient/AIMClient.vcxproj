@@ -158,12 +158,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainScene.cpp" />
+    <ClCompile Include="Minion.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bullet.h" />
     <ClInclude Include="MainScene.h" />
+    <ClInclude Include="Minion.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

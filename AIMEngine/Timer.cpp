@@ -1,5 +1,5 @@
 #include "Timer.h"
-
+#include "Core.h"
 
 
 float Timer::GetTime() const
@@ -46,6 +46,11 @@ void Timer::Update()
 		FPS = iTick / FPSTime;
 		FPSTime = 0.0f;
 		iTick = 0;
+
+		char FPSstr[256] = {};
+
+		sprintf_s(FPSstr, "FPS : %.5f", FPS);
+		SetWindowTextA(Core::Inst()->GetWindowHandle(), FPSstr);
 	}
 }
 

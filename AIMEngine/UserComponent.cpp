@@ -9,6 +9,7 @@ UserComponent::UserComponent()
 
 UserComponent::UserComponent(const UserComponent& _Other) : AIMComponent(_Other)
 {
+
 }
 
 void UserComponent::Start()

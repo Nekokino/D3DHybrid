@@ -24,6 +24,12 @@
     <ClCompile Include="Player.cpp">
       <Filter>02 UserCom</Filter>
     </ClCompile>
+    <ClCompile Include="Minion.cpp">
+      <Filter>02 UserCom</Filter>
+    </ClCompile>
+    <ClCompile Include="Bullet.cpp">
+      <Filter>02 UserCom</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -33,6 +39,12 @@
       <Filter>01 Main</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
+      <Filter>02 UserCom</Filter>
+    </ClInclude>
+    <ClInclude Include="Minion.h">
+      <Filter>02 UserCom</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullet.h">
       <Filter>02 UserCom</Filter>
     </ClInclude>
   </ItemGroup>

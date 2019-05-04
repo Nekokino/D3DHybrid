@@ -38,6 +38,7 @@ private:
 	std::vector<MeshContainer*> MeshContainerVec;
 	std::string ShaderName;
 	std::string InputLayoutName;
+	Vec3 View;
 
 public:
 	std::string GetShaderName() const
@@ -55,6 +56,15 @@ public:
 	size_t GetSubsetCount(int _Container = 0) const
 	{
 		return MeshContainerVec[_Container]->IBVec.size();
+	}
+	Vec3 GetView() const
+	{
+		return View;
+	}
+
+	void SetView(const Vec3& _Vec)
+	{
+		View = _Vec;
 	}
 
 public:

@@ -21,7 +21,6 @@ public:
 	int Update(float _Time);
 	int LateUpdate(float _Time);
 	int Collision(float _Time);
-	int PrevRender(float _Time);
 	int Render(float _Time);
 
 	void AddObject(Ezptr<AIMObject> _Obj);

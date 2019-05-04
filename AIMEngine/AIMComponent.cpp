@@ -4,9 +4,9 @@ AIMComponent::AIMComponent()
 {
 }
 
-AIMComponent::AIMComponent(const AIMComponent & _Other)
+AIMComponent::AIMComponent(const AIMComponent & _Other) : Scene(_Other.Scene), Layer(_Other.Layer), Object(_Other.Object), Transform(_Other.Transform), CT(_Other.CT)
 {
-	*this = _Other;
+
 }
 
 AIMComponent::~AIMComponent()

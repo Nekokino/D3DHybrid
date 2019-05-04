@@ -27,6 +27,8 @@ private:
 	Vec3 LocalScale;
 	Vec3 LocalRotation;
 	Vec3 LocalPosition;
+	Vec3 LocalRelativeView;
+	Vec3 LocalView;
 
 public:
 	Vec3 GetLocalScale() const
@@ -44,6 +46,11 @@ public:
 		return LocalPosition;
 	}
 
+	Vec3 GetLocalView() const
+	{
+		return LocalView;
+	}
+
 public:
 	void SetLocalScale(float _x, float _y, float _z);
 	void SetLocalScale(const Vec3& _Scale);
@@ -54,6 +61,8 @@ public:
 	void SetLocalRotationZ(float _z);
 	void SetLocalPosition(float _x, float _y, float _z);
 	void SetLocalPosition(const Vec3& _Position);
+	void SetLocalRelativeView(float _x, float _y, float _z);
+	void SetLocalRelativeView(const Vec3& _View);
 
 private:
 	Matrix LocalScaleMat;
@@ -72,6 +81,10 @@ private:
 	Vec3 WorldRotation;
 	Vec3 WorldPosition;
 	Vec3 WorldAxis[AXIS_END];
+	Vec3 WorldView;
+	Ezptr<AIMTransform> LookAtTransform;
+	LookAt_Axis LookAtAxis;
+	
 
 public:
 	Vec3 GetWorldScale() const
@@ -94,6 +107,12 @@ public:
 		return WorldAxis[_Axis];
 	}
 
+	Vec3 GetWorldView() const
+	{
+		return WorldView;
+	}
+
+
 public:
 	void SetWorldScale(float _x, float _y, float _z);
 	void SetWorldScale(const Vec3& _Scale);
@@ -104,6 +123,10 @@ public:
 	void SetWorldRotationZ(float _z);
 	void SetWorldPosition(float _x, float _y, float _z);
 	void SetWorldPosition(const Vec3& _Position);
+	void SetLookAtAxis(LookAt_Axis _Axis)
+	{
+		LookAtAxis = _Axis;
+	}
 
 private:
 	Matrix WorldScaleMat;
@@ -131,6 +154,18 @@ public:
 	virtual int PrevRender(float _Time);
 	virtual int Render(float _Time);
 	virtual AIMTransform* Clone() const;
+
+public:
+	void Move(Axis _Axis, float _Speed, float _Time);
+	void Move(const Vec3& _Dir, float _Speed, float _Time);
+	void LookAt(Ezptr<AIMObject> _Obj);
+	void LookAt(Ezptr<AIMComponent> _Com);
+	void RemoveLookAt();
+	void RotationLookAt();
+	void RotationLookAt(Vec3 _LookAt);
+
+private:
+	void ComputeAxis();
 
 private:
 	AIMTransform();

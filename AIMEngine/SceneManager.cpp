@@ -46,18 +46,16 @@ int SceneManager::Collision(float _Time)
 	return 0;
 }
 
-int SceneManager::PrevRender(float _Time)
-{
-	Scene->PrevRender(_Time);
-
-	return 0;
-}
-
 int SceneManager::Render(float _Time)
 {
 	Scene->Render(_Time);
 
 	return 0;
+}
+
+Ezptr<AIMScene> SceneManager::GetScene()
+{
+	return Scene;
 }
 
 Ezptr<AIMScene> SceneManager::CreateEmptyScene()

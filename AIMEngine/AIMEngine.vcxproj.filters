@@ -22,26 +22,59 @@
     <Filter Include="04 Manager">
       <UniqueIdentifier>{a144cbba-c252-48a5-a885-09c6c163228c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05 Scene">
-      <UniqueIdentifier>{1e34f254-3098-4bcc-b60c-da322498146e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06 Object">
-      <UniqueIdentifier>{5cb988f0-ed2d-4df2-a6e3-19075de5d123}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06 Object\01 Component">
-      <UniqueIdentifier>{654f0c20-53fc-4c34-b054-76445f092a70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06 Object\01 Component\01 Renderer">
-      <UniqueIdentifier>{f4bb9c80-c69f-4ea4-aa15-a26187cc32f4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99 Header">
       <UniqueIdentifier>{f40abfc4-6b7d-4c64-8968-03837b6cbfd9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06 Object\01 Component\02 Transform">
+    <Filter Include="03 Resource\01 Resource\03 Texture">
+      <UniqueIdentifier>{8a99b642-769f-40c6-842d-861fae55877a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03 Resource\01 Resource\04 Sampler">
+      <UniqueIdentifier>{fccfb224-c335-43b9-8d96-e23d443dfdf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render">
+      <UniqueIdentifier>{b120e65e-aabc-443c-8d5e-8c6d3512c90f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\02 Scene">
+      <UniqueIdentifier>{dd547995-58ea-4bf2-b6ef-2fefbb1fdfde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object">
+      <UniqueIdentifier>{5cb988f0-ed2d-4df2-a6e3-19075de5d123}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component">
+      <UniqueIdentifier>{654f0c20-53fc-4c34-b054-76445f092a70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\01 Renderer">
+      <UniqueIdentifier>{f4bb9c80-c69f-4ea4-aa15-a26187cc32f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\02 Transform">
       <UniqueIdentifier>{bceaab67-7737-42c3-9c31-d8d35092158d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06 Object\01 Component\03 User">
+    <Filter Include="05 Object\01 Component\03 User">
       <UniqueIdentifier>{0d0acd09-c942-4785-8cdf-b87fef75ca9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\04 Camera">
+      <UniqueIdentifier>{006a8802-d515-48e9-b3a0-f0da1248f587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\05 Material">
+      <UniqueIdentifier>{8dc5e699-6c43-427c-aa20-0c2f0e5041fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render\01 State">
+      <UniqueIdentifier>{440e7508-ea88-4af9-9982-173566c5c0ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render\01 State\01 Blend">
+      <UniqueIdentifier>{3fc8809a-6a72-4c8d-86f9-5bf62a51bce0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render\01 State\02 Depth">
+      <UniqueIdentifier>{5381fab1-c54d-4674-9aed-f05c765cbeb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render\01 State\03 Rasterizer">
+      <UniqueIdentifier>{ddaefb7e-c3dc-4dc5-b99d-8f11c0055251}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\06 Light">
+      <UniqueIdentifier>{3abead1c-bb28-45c4-909e-e7b12e4d50bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02 Device\01 Render\02 Target">
+      <UniqueIdentifier>{3c5603ba-9968-43dd-86fe-2a03780d0c86}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -87,9 +120,6 @@
     <ClInclude Include="AIMShader.h">
       <Filter>03 Resource\01 Resource\02 Shader</Filter>
     </ClInclude>
-    <ClInclude Include="RenderManager.h">
-      <Filter>02 Device</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderManager.h">
       <Filter>03 Resource\01 Resource\02 Shader</Filter>
     </ClInclude>
@@ -105,29 +135,17 @@
     <ClInclude Include="Timer.h">
       <Filter>04 Manager</Filter>
     </ClInclude>
-    <ClInclude Include="AIMLayer.h">
-      <Filter>05 Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="AIMScene.h">
-      <Filter>05 Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneComponent.h">
-      <Filter>05 Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>05 Scene</Filter>
-    </ClInclude>
     <ClInclude Include="AIMObject.h">
-      <Filter>06 Object</Filter>
+      <Filter>05 Object</Filter>
     </ClInclude>
     <ClInclude Include="AIMComponent.h">
-      <Filter>06 Object\01 Component</Filter>
+      <Filter>05 Object\01 Component</Filter>
     </ClInclude>
     <ClInclude Include="AIMRenderer.h">
-      <Filter>06 Object\01 Component\01 Renderer</Filter>
+      <Filter>05 Object\01 Component\01 Renderer</Filter>
     </ClInclude>
     <ClInclude Include="AIMTransform.h">
-      <Filter>06 Object\01 Component\02 Transform</Filter>
+      <Filter>05 Object\01 Component\02 Transform</Filter>
     </ClInclude>
     <ClInclude Include="RefStruct.h">
       <Filter>99 Header</Filter>
@@ -136,7 +154,55 @@
       <Filter>04 Manager</Filter>
     </ClInclude>
     <ClInclude Include="UserComponent.h">
-      <Filter>06 Object\01 Component\03 User</Filter>
+      <Filter>05 Object\01 Component\03 User</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMCamera.h">
+      <Filter>05 Object\01 Component\04 Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMTexture.h">
+      <Filter>03 Resource\01 Resource\03 Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXTex.h">
+      <Filter>99 Header</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMSampler.h">
+      <Filter>03 Resource\01 Resource\04 Sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMMaterial.h">
+      <Filter>05 Object\01 Component\05 Material</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMLayer.h">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMScene.h">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneComponent.h">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManager.h">
+      <Filter>02 Device\01 Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderState.h">
+      <Filter>02 Device\01 Render\01 State</Filter>
+    </ClInclude>
+    <ClInclude Include="BlendState.h">
+      <Filter>02 Device\01 Render\01 State\01 Blend</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthStencilState.h">
+      <Filter>02 Device\01 Render\01 State\02 Depth</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizerState.h">
+      <Filter>02 Device\01 Render\01 State\03 Rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMLight.h">
+      <Filter>05 Object\01 Component\06 Light</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>02 Device\01 Render\02 Target</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -170,9 +236,6 @@
     <ClCompile Include="AIMShader.cpp">
       <Filter>03 Resource\01 Resource\02 Shader</Filter>
     </ClCompile>
-    <ClCompile Include="RenderManager.cpp">
-      <Filter>02 Device</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
       <Filter>03 Resource\01 Resource\02 Shader</Filter>
     </ClCompile>
@@ -185,35 +248,73 @@
     <ClCompile Include="Timer.cpp">
       <Filter>04 Manager</Filter>
     </ClCompile>
-    <ClCompile Include="AIMLayer.cpp">
-      <Filter>05 Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="AIMScene.cpp">
-      <Filter>05 Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneComponent.cpp">
-      <Filter>05 Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>05 Scene</Filter>
-    </ClCompile>
     <ClCompile Include="AIMObject.cpp">
-      <Filter>06 Object</Filter>
+      <Filter>05 Object</Filter>
     </ClCompile>
     <ClCompile Include="AIMComponent.cpp">
-      <Filter>06 Object\01 Component</Filter>
+      <Filter>05 Object\01 Component</Filter>
     </ClCompile>
     <ClCompile Include="AIMRenderer.cpp">
-      <Filter>06 Object\01 Component\01 Renderer</Filter>
+      <Filter>05 Object\01 Component\01 Renderer</Filter>
     </ClCompile>
     <ClCompile Include="AIMTransform.cpp">
-      <Filter>06 Object\01 Component\02 Transform</Filter>
+      <Filter>05 Object\01 Component\02 Transform</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
       <Filter>04 Manager</Filter>
     </ClCompile>
     <ClCompile Include="UserComponent.cpp">
-      <Filter>06 Object\01 Component\03 User</Filter>
+      <Filter>05 Object\01 Component\03 User</Filter>
     </ClCompile>
+    <ClCompile Include="AIMCamera.cpp">
+      <Filter>05 Object\01 Component\04 Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMTexture.cpp">
+      <Filter>03 Resource\01 Resource\03 Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMSampler.cpp">
+      <Filter>03 Resource\01 Resource\04 Sampler</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMMaterial.cpp">
+      <Filter>05 Object\01 Component\05 Material</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMLayer.cpp">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMScene.cpp">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneComponent.cpp">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>02 Device\02 Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderManager.cpp">
+      <Filter>02 Device\01 Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderState.cpp">
+      <Filter>02 Device\01 Render\01 State</Filter>
+    </ClCompile>
+    <ClCompile Include="BlendState.cpp">
+      <Filter>02 Device\01 Render\01 State\01 Blend</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthStencilState.cpp">
+      <Filter>02 Device\01 Render\01 State\02 Depth</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizerState.cpp">
+      <Filter>02 Device\01 Render\01 State\03 Rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMLight.cpp">
+      <Filter>05 Object\01 Component\06 Light</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>02 Device\01 Render\02 Target</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DirectXTex.inl">
+      <Filter>99 Header</Filter>
+    </None>
   </ItemGroup>
 </Project>

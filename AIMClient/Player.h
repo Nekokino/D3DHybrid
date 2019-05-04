@@ -15,6 +15,11 @@ public:
 	virtual Player* Clone() const;
 
 public:
+	void MoveFront(float _Scale, float _Time);
+	void Fire(float _Time);
+	void Test(float _Time);
+
+public:
 	Player();
 	Player(const Player& _Other);
 	~Player();

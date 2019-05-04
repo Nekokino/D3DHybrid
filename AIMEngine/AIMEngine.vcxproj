@@ -73,21 +73,25 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D32</TargetName>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D64</TargetName>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R32</TargetName>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R64</TargetName>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -154,23 +158,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AIMCamera.h" />
     <ClInclude Include="AIMComponent.h" />
     <ClInclude Include="AIMDevice.h" />
     <ClInclude Include="AIMLayer.h" />
+    <ClInclude Include="AIMLight.h" />
+    <ClInclude Include="AIMMaterial.h" />
     <ClInclude Include="AIMMesh.h" />
     <ClInclude Include="AIMObject.h" />
     <ClInclude Include="AIMRenderer.h" />
+    <ClInclude Include="AIMSampler.h" />
     <ClInclude Include="AIMScene.h" />
     <ClInclude Include="AIMShader.h" />
+    <ClInclude Include="AIMTexture.h" />
     <ClInclude Include="AIMTransform.h" />
+    <ClInclude Include="BlendState.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="DepthStencilState.h" />
+    <ClInclude Include="DirectXTex.h" />
     <ClInclude Include="EngineHeader.h" />
     <ClInclude Include="EngineMath.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="PathManager.h" />
+    <ClInclude Include="RasterizerState.h" />
     <ClInclude Include="RefStruct.h" />
+    <ClInclude Include="RenderState.h" />
+    <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="SceneComponent.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShaderManager.h" />
@@ -187,19 +202,29 @@
     <ClInclude Include="Flag.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIMCamera.cpp" />
     <ClCompile Include="AIMComponent.cpp" />
     <ClCompile Include="AIMDevice.cpp" />
     <ClCompile Include="AIMLayer.cpp" />
+    <ClCompile Include="AIMLight.cpp" />
+    <ClCompile Include="AIMMaterial.cpp" />
     <ClCompile Include="AIMMesh.cpp" />
     <ClCompile Include="AIMObject.cpp" />
     <ClCompile Include="AIMRenderer.cpp" />
+    <ClCompile Include="AIMSampler.cpp" />
     <ClCompile Include="AIMScene.cpp" />
     <ClCompile Include="AIMShader.cpp" />
+    <ClCompile Include="AIMTexture.cpp" />
     <ClCompile Include="AIMTransform.cpp" />
+    <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="DepthStencilState.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="PathManager.cpp" />
+    <ClCompile Include="RasterizerState.cpp" />
+    <ClCompile Include="RenderState.cpp" />
+    <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
@@ -212,6 +237,9 @@
     <ClCompile Include="Vec4.cpp" />
     <ClCompile Include="Vec3.cpp" />
     <ClCompile Include="Vec2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DirectXTex.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\Bin\Shader\Debug.fx" />
     <FxCompile Include="..\Bin\Shader\ShaderStruct.fx" />
     <FxCompile Include="..\Bin\Shader\Standard.fx" />
   </ItemGroup>

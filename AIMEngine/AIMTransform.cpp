@@ -1,19 +1,38 @@
 #include "AIMTransform.h"
 #include "AIMDevice.h"
 #include "ShaderManager.h"
+#include "AIMObject.h"
+#include "AIMScene.h"
+#include "AIMCamera.h"
 
 AIMTransform::AIMTransform()
 {
 	CT = CT_TRANSFORM;
+
+	LocalRelativeView = Vec3::Axis[AXIS_Z];
+	LocalView = LocalRelativeView;
+	WorldView = LocalRelativeView;
+	LookAtAxis = LA_ALL;
 }
 
 AIMTransform::~AIMTransform()
 {
+	LookAtTransform = nullptr;
 }
 
-AIMTransform::AIMTransform(const AIMTransform & _Other)
+AIMTransform::AIMTransform(const AIMTransform & _Other) : bStatic(_Other.bStatic), bUpdate(_Other.bUpdate), ConstBuffer(_Other.ConstBuffer),
+LocalScale(_Other.LocalScale), LocalRotation(_Other.LocalRotation), LocalPosition(_Other.LocalPosition), LocalRelativeView(_Other.LocalRelativeView),
+LocalView(_Other.LocalView), LocalScaleMat(_Other.LocalScaleMat), LocalRotationMat(_Other.LocalRotationMat), LocalMat(_Other.LocalMat), LocalPositionMat(_Other.LocalPositionMat),
+WorldScale(_Other.WorldScale), WorldRotation(_Other.WorldRotation), WorldPosition(_Other.WorldPosition), WorldView(_Other.WorldView),
+LookAtTransform(_Other.LookAtTransform), LookAtAxis(_Other.LookAtAxis), WorldScaleMat(_Other.WorldScaleMat), WorldRotationMat(_Other.WorldRotationMat),
+WorldPositionMat(_Other.WorldPositionMat), WorldParentMat(_Other.WorldParentMat), WorldMat(_Other.WorldMat),
+AIMComponent(_Other)
 {
-	*this = _Other;
+	for (int i = 0; i < AXIS_END; i++)
+	{
+		WorldAxis[i] = _Other.WorldAxis[i];
+	}
+
 	bUpdate = true;
 }
 
@@ -45,6 +64,8 @@ void AIMTransform::SetWorldRotation(float _x, float _y, float _z)
 
 	WorldRotationMat.Rotation(WorldRotation);
 
+	ComputeAxis();
+
 	bUpdate = true;
 }
 
@@ -53,6 +74,8 @@ void AIMTransform::SetWorldRotation(const Vec3 & _Rotation)
 	WorldRotation = _Rotation;
 
 	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
 
 	bUpdate = true;
 }
@@ -63,6 +86,8 @@ void AIMTransform::SetWorldRotationX(float _x)
 
 	WorldRotationMat.Rotation(WorldRotation);
 
+	ComputeAxis();
+
 	bUpdate = true;
 }
 
@@ -72,6 +97,8 @@ void AIMTransform::SetWorldRotationY(float _y)
 
 	WorldRotationMat.Rotation(WorldRotation);
 
+	ComputeAxis();
+
 	bUpdate = true;
 }
 
@@ -80,6 +107,8 @@ void AIMTransform::SetWorldRotationZ(float _z)
 	WorldRotation.z = _z;
 
 	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
 
 	bUpdate = true;
 }
@@ -132,6 +161,9 @@ void AIMTransform::SetLocalRotation(float _x, float _y, float _z)
 
 	LocalRotationMat.Rotation(LocalRotation);
 
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
+
 	bUpdate = true;
 }
 
@@ -140,6 +172,9 @@ void AIMTransform::SetLocalRotation(const Vec3 & _Rotation)
 	LocalRotation = _Rotation;
 
 	LocalRotationMat.Rotation(LocalRotation);
+
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
 
 	bUpdate = true;
 }
@@ -150,6 +185,9 @@ void AIMTransform::SetLocalRotationX(float _x)
 
 	LocalRotationMat.Rotation(LocalRotation);
 
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
+
 	bUpdate = true;
 }
 
@@ -159,6 +197,9 @@ void AIMTransform::SetLocalRotationY(float _y)
 
 	LocalRotationMat.Rotation(LocalRotation);
 
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
+
 	bUpdate = true;
 }
 
@@ -167,6 +208,9 @@ void AIMTransform::SetLocalRotationZ(float _z)
 	LocalRotation.z = _z;
 
 	LocalRotationMat.Rotation(LocalRotation);
+
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
 
 	bUpdate = true;
 }
@@ -208,6 +252,14 @@ void AIMTransform::Start()
 
 bool AIMTransform::Init()
 {
+	LocalScale = Vec3(1.0f, 1.0f, 1.0f);
+	WorldScale = Vec3(1.0f, 1.0f, 1.0f);
+
+	for (int i = 0; i < AXIS_END; i++)
+	{
+		WorldAxis[i] = Vec3::Axis[i];
+	}
+
 	return true;
 }
 
@@ -240,22 +292,28 @@ int AIMTransform::PrevRender(float _Time)
 {
 	if (true == bUpdate)
 	{
+		Ezptr<AIMCamera> Cam = Scene->GetMainCamera();
+
+		ConstBuffer.WorldRotation = LocalRotationMat * WorldRotationMat;
+		ConstBuffer.WVRotation = ConstBuffer.WorldRotation * Cam->GetView();
 		ConstBuffer.World = LocalMat * WorldMat;
-		ConstBuffer.View = DirectX::XMMatrixLookAtLH(Vec3(0.0f, 0.0f, -5.0f).Convert(), Vec3(0.0f, 0.0f, 0.0f).Convert(), Vec3(0.0f, 1.0f, 0.0f).Convert());
-		ConstBuffer.Projection = DirectX::XMMatrixPerspectiveFovLH(MATH_PI / 2.0f, (float)GetDeviceInst->GetResolution().Width / (float)GetDeviceInst->GetResolution().Height, 0.03f, 1000.0f);
+		ConstBuffer.View = Cam->GetView();
+		ConstBuffer.Projection = Cam->GetProjection();
 		ConstBuffer.WV = ConstBuffer.World * ConstBuffer.View;
 		ConstBuffer.WVP = ConstBuffer.WV * ConstBuffer.Projection;
 
+		ConstBuffer.WorldRotation.Transpose();
+		ConstBuffer.WVRotation.Transpose();
 		ConstBuffer.World.Transpose();
 		ConstBuffer.View.Transpose();
 		ConstBuffer.Projection.Transpose();
 		ConstBuffer.WV.Transpose();
 		ConstBuffer.WVP.Transpose();
+
+		bUpdate = false;
 	}
 
 	ShaderManager::UpdateConstBuffer("Transform", &ConstBuffer);
-
-	bUpdate = false;
 
 	return 0;
 }
@@ -263,4 +321,126 @@ int AIMTransform::PrevRender(float _Time)
 int AIMTransform::Render(float _Time)
 {
 	return 0;
+}
+
+void AIMTransform::Move(Axis _Axis, float _Speed, float _Time)
+{
+	WorldPosition += WorldAxis[_Axis] * _Speed * _Time;
+
+	WorldPositionMat.Translation(WorldPosition);
+
+	bUpdate = true;
+}
+
+void AIMTransform::SetLocalRelativeView(float _x, float _y, float _z)
+{
+	LocalRelativeView = Vec3(_x, _y, _z);
+
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
+}
+
+void AIMTransform::SetLocalRelativeView(const Vec3 & _View)
+{
+	LocalRelativeView = _View;
+
+	LocalView = LocalRelativeView.TransformNormal(LocalRotationMat);
+	LocalView.Normalize();
+}
+
+void AIMTransform::Move(const Vec3 & _Dir, float _Speed, float _Time)
+{
+	WorldPosition += _Dir * _Speed * _Time;
+
+	WorldPositionMat.Translation(WorldPosition);
+
+	bUpdate = true;
+}
+
+void AIMTransform::LookAt(Ezptr<AIMObject> _Obj)
+{
+	LookAtTransform = _Obj->GetTransform();
+}
+
+void AIMTransform::LookAt(Ezptr<AIMComponent> _Com)
+{
+	if (_Com->GetComType() == CT_TRANSFORM)
+	{
+		LookAtTransform = _Com;
+	}
+
+	else
+	{
+		LookAtTransform = _Com->GetTransform();
+	}
+}
+
+void AIMTransform::RemoveLookAt()
+{
+	LookAtTransform = nullptr;
+}
+
+void AIMTransform::RotationLookAt()
+{
+	if (LookAtTransform == nullptr)
+	{
+		return;
+	}
+
+	RotationLookAt(LookAtTransform->GetWorldPosition());
+}
+
+void AIMTransform::RotationLookAt(Vec3 _LookAt)
+{
+	Vec3 View = LocalView;
+	Vec3 Pos = WorldPosition;
+
+	switch (LookAtAxis)
+	{
+	case LA_X:
+		_LookAt.x = 0.0f;
+		Pos.x = 0.0f;
+		View.x = 0.0f;
+		break;
+	case LA_Y:
+		_LookAt.y = 0.0f;
+		Pos.y = 0.0f;
+		View.y = 0.0f;
+		break;
+	case LA_Z:
+		_LookAt.z = 0.0f;
+		Pos.z = 0.0f;
+		View.z = 0.0f;
+		break;
+	default:
+		break;
+	}
+
+	Vec3 Dir = _LookAt - Pos;
+	Dir.Normalize();
+	View.Normalize();
+
+	// 회전축 계산
+	Vec3 RotAxis = View.Cross(Dir);
+	RotAxis.Normalize();
+
+	float Angle = View.Angle(Dir);
+
+	WorldRotationMat.RotationAxis(Angle, RotAxis);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::ComputeAxis()
+{
+	for (int i = 0; i < AXIS_END; i++)
+	{
+		WorldAxis[i] = Vec3::Axis[i].TransformNormal(WorldRotationMat);
+		WorldAxis[i].Normalize();
+	}
+
+	WorldView = LocalView.TransformNormal(WorldRotationMat);
+	WorldView.Normalize();
 }

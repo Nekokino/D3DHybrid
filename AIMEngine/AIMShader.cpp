@@ -45,7 +45,7 @@ size_t AIMShader::GetVsCodeSize() const
 	return VSBlob->GetBufferSize();
 }
 
-bool AIMShader::LoadShader(const std::string & _Name, const TCHAR * _FileName, char * _Entry[ST_END], const std::string & _PathKey)
+bool AIMShader::LoadShader(const std::string & _Name, const TCHAR * _FileName, std::string _Entry[ST_END], const std::string & _PathKey)
 {
 	SetNameTag(_Name.c_str());
 
@@ -60,13 +60,13 @@ bool AIMShader::LoadShader(const std::string & _Name, const TCHAR * _FileName, c
 
 	lstrcat(Path, _FileName);
 
-	if (false == LoadVertexShader(Path, _Entry[ST_VTX]))
+	if (false == LoadVertexShader(Path, _Entry[ST_VTX].c_str()))
 	{
 		tassertmsg(true, "VertexShader Load Failed");
 		return false;
 	}
 
-	if (false == LoadPixelShader(Path, _Entry[ST_PIX]))
+	if (false == LoadPixelShader(Path, _Entry[ST_PIX].c_str()))
 	{
 		tassertmsg(true, "PixelShader Load Failed");
 		return false;

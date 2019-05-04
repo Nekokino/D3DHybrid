@@ -1,6 +1,13 @@
 #include "AIMScene.h"
 #include "SceneComponent.h"
 #include "AIMLayer.h"
+#include "AIMObject.h"
+#include "AIMCamera.h"
+#include "AIMTransform.h"
+#include "AIMDevice.h"
+#include "AIMRenderer.h"
+#include "AIMMaterial.h"
+#include "AIMLight.h"
 
 AIMScene::AIMScene()
 {
@@ -11,12 +18,68 @@ AIMScene::~AIMScene()
 {
 	SceneComList.clear();
 	LayerList.clear();
+
+	AIMObject::RemovePrototype(this);
+}
+
+Ezptr<AIMObject> AIMScene::GetMainCameraObj() const
+{
+	return MainCameraObj;
+}
+
+Ezptr<AIMCamera> AIMScene::GetMainCamera() const
+{
+	return MainCamera;
+}
+
+Ezptr<AIMTransform> AIMScene::GetMainCameraTransform() const
+{
+	return MainCameraTransform;
 }
 
 bool AIMScene::Init()
 {
 	AddLayer("Default", 0);
 	AddLayer("UI", INT_MAX - 2);
+
+	AddCamera("MainCamera", Vec3(0.0f, 0.0f, -5.0f), Vec3::Zero, CT_PERS, GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, 90.0f, 0.03f, 1000.0f);
+
+	Sky = AIMObject::CreateObject("Sky");
+
+	Sky->SetScene(this);
+
+	Ezptr<AIMTransform> SkyTransform = Sky->GetTransform();
+
+	SkyTransform->SetWorldScale(100000.0f, 100000.0f, 100000.0f);
+
+	Sky->LateUpdate(0.0f);
+
+	Ezptr<AIMRenderer> SkyRenderer = Sky->AddComponent<AIMRenderer>("SkyRenderer");
+
+	SkyRenderer->SetMesh("Sky");
+	SkyRenderer->SetRenderState("CullNone");
+	SkyRenderer->SetRenderState("LessEqual");
+
+	Ezptr<AIMMaterial> SkyMaterial = Sky->AddComponent<AIMMaterial>("SkyMaterial");
+
+	SkyMaterial->SetDiffuseTextureSet(0, 0, "LinearSampler", 0, 10, "SkyTexture", TEXT("Sky.dds"));
+
+	Sky->Start();
+
+	Ezptr<AIMLayer> DefaultLayer = FindLayer("Default");
+
+	Ezptr<AIMObject> GlobalLightObj = AIMObject::CreateObject("GlobalLight", DefaultLayer);
+
+	Ezptr<AIMTransform> LightTransform = GlobalLightObj->GetTransform();
+
+	LightTransform->SetWorldRotationX(45.0f);
+	LightTransform->SetWorldPosition(0.0f, 1.0f, -1.0f);
+
+	Ezptr<AIMLight> GlobalLight = GlobalLightObj->AddComponent<AIMLight>("GlobalLight");
+
+	GlobalLight->SetLightType(LT_SPOT);
+	GlobalLight->SetLightDistance(10.0f);
+	GlobalLight->SetLightAngle(60.0f, 90.0f);
 
 	return true;
 }
@@ -112,6 +175,8 @@ int AIMScene::Update(float _Time)
 		++StartIterA;
 	}
 
+	MainCameraObj->Update(_Time);
+
 	return 0;
 }
 
@@ -158,6 +223,8 @@ int AIMScene::LateUpdate(float _Time)
 
 		++StartIterA;
 	}
+
+	MainCameraObj->LateUpdate(_Time);
 
 	return 0;
 }
@@ -206,52 +273,7 @@ int AIMScene::Collision(float _Time)
 		++StartIterA;
 	}
 
-	return 0;
-}
-
-int AIMScene::PrevRender(float _Time)
-{
-	std::list<Ezptr<SceneComponent>>::iterator StartIter = SceneComList.begin();
-	std::list<Ezptr<SceneComponent>>::iterator EndIter = SceneComList.end();
-
-	for (; StartIter != EndIter;)
-	{
-		if ((*StartIter)->IsAlive() == false)
-		{
-			StartIter = SceneComList.erase(StartIter);
-			continue;
-		}
-		else if ((*StartIter)->IsEnable() == false)
-		{
-			++StartIter;
-			continue;
-		}
-
-		(*StartIter)->PrevRender(_Time);
-
-		++StartIter;
-	}
-
-	std::list<Ezptr<AIMLayer>>::iterator StartIterA = LayerList.begin();
-	std::list<Ezptr<AIMLayer>>::iterator EndIterA = LayerList.end();
-
-	for (; StartIterA != EndIterA;)
-	{
-		if ((*StartIterA)->IsAlive() == false)
-		{
-			StartIterA = LayerList.erase(StartIterA);
-			continue;
-		}
-		else if ((*StartIterA)->IsEnable() == false)
-		{
-			++StartIterA;
-			continue;
-		}
-
-		(*StartIterA)->PrevRender(_Time);
-
-		++StartIterA;
-	}
+	MainCameraObj->Collision(_Time);
 
 	return 0;
 }
@@ -279,6 +301,8 @@ int AIMScene::Render(float _Time)
 		++StartIter;
 	}
 
+	Sky->Render(_Time);
+
 	std::list<Ezptr<AIMLayer>>::iterator StartIterA = LayerList.begin();
 	std::list<Ezptr<AIMLayer>>::iterator EndIterA = LayerList.end();
 
@@ -299,6 +323,8 @@ int AIMScene::Render(float _Time)
 
 		++StartIterA;
 	}
+
+	MainCameraObj->Render(_Time);
 
 	return 0;
 }
@@ -339,6 +365,72 @@ Ezptr<AIMLayer> AIMScene::FindLayer(const std::string & _Name)
 	}
 
 	return nullptr;
+}
+
+bool AIMScene::AddCamera(const std::string & _Name, const Vec3 & _Pos, const Vec3 & _Rot, CamType _Type, UINT _Widht, UINT _Height, float _Angle, float _Near, float _Far)
+{
+	Ezptr<AIMObject> CamObj = FindCamera(_Name);
+
+	if (CamObj != nullptr)
+	{
+		tassertmsg(true, "Camera Name Overlapped");
+		return false;
+	}
+
+	CamObj = AIMObject::CreateObject(_Name);
+
+	CamObj->SetScene(this);
+
+	Ezptr<AIMTransform> CamTransform = CamObj->GetTransform();
+
+	CamTransform->SetWorldPosition(_Pos);
+	CamTransform->SetWorldRotation(_Rot);
+
+	Ezptr<AIMCamera> Cam = CamObj->AddComponent<AIMCamera>(_Name);
+
+	Cam->SetCameraInfo(_Type, _Widht, _Height, _Angle, _Near, _Far);
+
+	if (MainCameraObj == nullptr)
+	{
+		MainCameraObj = CamObj;
+
+		MainCamera = Cam;
+
+		MainCameraTransform = CamTransform;
+	}
+
+	CameraMap.insert(std::unordered_map<std::string, Ezptr<AIMObject>>::value_type(_Name, CamObj));
+
+	return true;
+}
+
+bool AIMScene::ChangeCamera(const std::string & _Name)
+{
+	Ezptr<AIMObject> CamObj = FindCamera(_Name);
+
+	if (CamObj == nullptr)
+	{
+		tassertmsg(true, "Not exist Camera");
+		return false;
+	}
+
+	MainCameraObj = CamObj;
+	MainCamera = CamObj->FindComponent<AIMCamera>(CT_CAMERA);
+	MainCameraTransform = CamObj->GetTransform();
+
+	return true;
+}
+
+Ezptr<AIMObject> AIMScene::FindCamera(const std::string & _Name)
+{
+	std::unordered_map<std::string, Ezptr<AIMObject>>::iterator FindIter = CameraMap.find(_Name);
+
+	if (FindIter == CameraMap.end())
+	{
+		return nullptr;
+	}
+
+	return FindIter->second;
 }
 
 bool AIMScene::SortFunc(Ezptr<AIMLayer> _Src, Ezptr<AIMLayer> _Dest)

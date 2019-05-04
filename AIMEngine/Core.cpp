@@ -9,6 +9,7 @@
 #include "SceneManager.h"
 #include "AIMShader.h"
 #include "AIMMesh.h"
+#include "InputManager.h"
 
 bool Core::Loop = true;
 Core* Core::pInst = nullptr;
@@ -16,6 +17,7 @@ Core* Core::pInst = nullptr;
 Core::Core()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(13587);
 
 	memset(ClearColor, 0, sizeof(float) * 4);
 }
@@ -28,6 +30,8 @@ Core::~Core()
 	// 아마 디바이스가 없어지면서 에러가 생기는게 아닐까 싶다.
 
 	SceneManager::Release();
+
+	InputManager::Release();
 	TimeManager::Release();
 	RenderManager::Release();
 	ResourceManager::Release();
@@ -67,6 +71,12 @@ bool Core::Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _Win
 		return false;
 	}
 
+	if (false == InputManager::Init(hInst, hWnd))
+	{
+		tassertmsg(true, "InputManager Init Failed");
+		return false;
+	}
+
 	if (false == ResourceManager::Init())
 	{
 		tassertmsg(true, "ResourceManager Init Failed");
@@ -102,6 +112,16 @@ void Core::SetClearColor(unsigned char _r, unsigned char _g, unsigned char _b, u
 	ClearColor[1] = _g / 255.0f;
 	ClearColor[2] = _b / 255.0f;
 	ClearColor[3] = _a / 255.0f;
+}
+
+HINSTANCE Core::GetWindowInst() const
+{
+	return hInst;
+}
+
+HWND Core::GetWindowHandle() const
+{
+	return hWnd;
 }
 
 int Core::Run()
@@ -194,13 +214,12 @@ void Core::Logic()
 	Update(Time);
 	LateUpdate(Time);
 	Collision(Time);
-	PrevRender(Time);
 	Render(Time);
 }
 
 int Core::Input(float _Time)
 {
-	SceneManager::Input(_Time);
+	InputManager::Update(_Time);
 
 	return 0;
 }
@@ -226,27 +245,21 @@ int Core::Collision(float _Time)
 	return 0;
 }
 
-int Core::PrevRender(float _Time)
-{
-	SceneManager::PrevRender(_Time);
-
-	return 0;
-}
-
 int Core::Render(float _Time)
 {
-	SceneManager::Render(_Time);
-
 	GetDeviceInst->Clear(ClearColor);
 
-	Ezptr<AIMShader> Shader = ShaderManager::FindShader("StandardColorShader");
-	ID3D11InputLayout* Layout = ShaderManager::FindInputLayout("StandardColorLayout");
-	Ezptr<AIMMesh> Mesh = ResourceManager::FindMesh("ColorTriangle");
+	SceneManager::Render(_Time);
 
-	GetAIMContext->IASetInputLayout(Layout);
-	Shader->SetShader();
+	RenderManager::Render(_Time);
+	//Ezptr<AIMShader> Shader = ShaderManager::FindShader("StandardColorShader");
+	//ID3D11InputLayout* Layout = ShaderManager::FindInputLayout("StandardColorLayout");
+	//Ezptr<AIMMesh> Mesh = ResourceManager::FindMesh("ColorTriangle");
 
-	Mesh->Render();
+	//GetAIMContext->IASetInputLayout(Layout);
+	//Shader->SetShader();
+
+	//Mesh->Render();
 
 	GetDeviceInst->Present();
 

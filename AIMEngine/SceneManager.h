@@ -17,8 +17,9 @@ public:
 	static int Update(float _Time);
 	static int LateUpdate(float _Time);
 	static int Collision(float _Time);
-	static int PrevRender(float _Time);
 	static int Render(float _Time);
+
+	static Ezptr<AIMScene> GetScene();
 
 public:
 	template<typename T>

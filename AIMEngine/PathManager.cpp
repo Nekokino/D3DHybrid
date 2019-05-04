@@ -25,6 +25,8 @@ bool PathManager::Init()
 	PathMap.insert(std::unordered_map<std::string, TCHAR*>::value_type("Root", Path));
 
 	CreatePath("Shader", TEXT("Shader\\"), "Root");
+	CreatePath("Texture", TEXT("Texture\\"), "Root");
+	CreatePath("Mesh", TEXT("Mesh\\"), "Root");
 
 	return true;
 }

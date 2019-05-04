@@ -163,6 +163,11 @@ public:
 		return *ptr;
 	}
 
+	T& operator*() const
+	{
+		return *ptr;
+	}
+
 	template<typename Type>
 	operator Ezptr<Type>() // 형변환 연산자
 	{

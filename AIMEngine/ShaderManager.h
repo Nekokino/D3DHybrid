@@ -3,8 +3,8 @@
 #include "EngineHeader.h"
 #include "RefCounter.h"
 #include "RefStruct.h"
+#include "AIMShader.h"
 
-class AIMShader;
 class Engine_DLL ShaderManager
 {
 private:
@@ -19,7 +19,7 @@ public:
 	static bool Init();
 
 	// (셰이더 이름, 셰이더 파일 이름, , 경로 이름)
-	static bool LoadShader(const std::string& _Name, const TCHAR* _FileName, char* _Entry[ST_END], const std::string& _PathKey);
+	static bool LoadShader(const std::string& _Name, const TCHAR* _FileName, std::string _Entry[ST_END], const std::string& _PathKey);
 
 	static Ezptr<AIMShader> FindShader(const std::string& _Name);
 

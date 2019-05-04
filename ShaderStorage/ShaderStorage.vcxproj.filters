@@ -3,5 +3,6 @@
   <ItemGroup>
     <FxCompile Include="..\Bin\Shader\ShaderStruct.fx" />
     <FxCompile Include="..\Bin\Shader\Standard.fx" />
+    <FxCompile Include="..\Bin\Shader\Debug.fx" />
   </ItemGroup>
 </Project>

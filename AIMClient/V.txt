@@ -1,13 +1,23 @@
-20190410
-
 Ver 0.1
 
 기본 셰이더 렌더링 구조 잡음.
 
 Ver 0.2
+
 CPU 시간 구조 Deltatime 구현
 컴포넌트 기반 오브젝트 기초 구조 및 렌더러
 Scene 구조
 Transform 컴포넌트
 Transform 컴포넌트에서 셰이더에 상수버퍼 넘겨주는 구조
 사용자 지정 컴포넌트 구조
+
+Ver 0.3
+
+키보드 입력 시스템 구현
+Prototype / Clone 구조 구현
+Transform Based LookAt 구현
+Texture, Sampler, Shader 구현
+빛 구현
+카메라 및 재질 구현
+Blend, Depth, RasterizerState 구조
+Diferred Lighting 및 RenderTarget 구현

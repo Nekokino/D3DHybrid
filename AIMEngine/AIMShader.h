@@ -17,7 +17,7 @@ public:
 	size_t GetVsCodeSize() const;
 
 public:
-	bool LoadShader(const std::string& _Name, const TCHAR* _FileName, char* _Entry[ST_END], const std::string& _PathKey);
+	bool LoadShader(const std::string& _Name, const TCHAR* _FileName, std::string _Entry[ST_END], const std::string& _PathKey);
 	void SetShader();
 
 private:

@@ -40,6 +40,9 @@ private:
 	static bool Loop;
 
 public:
+	HINSTANCE GetWindowInst() const;
+	HWND GetWindowHandle() const;
+
 	int Run();
 	bool Init(HINSTANCE _hInst, const TCHAR* _Title, const TCHAR* _ClassName, int _Width, int _Height, int _IconID, int _SmallIconID, bool _WindowMode = true);
 	bool Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _WindowMode = true);
@@ -59,7 +62,6 @@ private:
 	int Update(float _Time);
 	int LateUpdate(float _Time);
 	int Collision(float _Time);
-	int PrevRender(float _Time);
 	int Render(float _Time);
 
 

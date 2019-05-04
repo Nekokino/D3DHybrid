@@ -28,7 +28,7 @@ public:
 	void SetAIMObject(AIMObject* _Object);
 
 protected:
-	ComType CT = CT_END;
+	ComType CT = ComType::CT_END;
 
 public:
 	ComType GetComType() const;
@@ -43,6 +43,19 @@ public:
 	virtual int PrevRender(float _Time);
 	virtual int Render(float _Time);
 	virtual AIMComponent* Clone() const;
+
+public:
+	template<typename T>
+	Ezptr<T> FindComponent(const std::string& _Name)
+	{
+		return Object->FindComponent<T>(_Name);
+	}
+
+	template<typename T>
+	Ezptr<T> FindComponent(ComType _Type)
+	{
+		return Object->FindComponent<T>(_Type);
+	}
 
 protected:
 	AIMComponent();

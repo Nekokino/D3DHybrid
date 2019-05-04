@@ -3,6 +3,7 @@
 
 AIMMesh::AIMMesh()
 {
+	View = Vec3::Axis[AXIS_Z];
 }
 
 

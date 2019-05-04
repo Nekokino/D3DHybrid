@@ -14,6 +14,11 @@ enum ComType
 	CT_TRANSFORM,
 	CT_RENDERER,
 	CT_USERCOM,
+	CT_CAMERA,
+	CT_MATERIAL,
+	CT_LIGHT,
+	CT_UI,
+	CT_LANDSCAPE,
 	CT_END,
 };
 
@@ -34,6 +39,63 @@ enum ConstShader
 
 enum KeyState
 {
-	KS_PRESS = 0x1,
-	KS_RELEASE = 0x2,
+	KS_PRESS,
+	KS_PUSH,
+	KS_RELEASE,
+	KS_END,
+};
+
+enum SKEY
+{
+	SKEY_CTRL,
+	SKEY_SHIFT,
+	SKEY_ALT,
+	SKEY_END,
+};
+
+enum LookAt_Axis
+{
+	LA_X,
+	LA_Y,
+	LA_Z,
+	LA_ALL,
+	LA_END,
+};
+
+enum CamType
+{
+	CT_PERS,
+	CT_ORTH,
+};
+
+enum RenderStateType
+{
+	RS_RASTERIZER,
+	RS_DEPTH,
+	RS_BLEND,
+	RS_END,
+};
+
+enum LightType
+{
+	LT_DIR,
+	LT_POINT,
+	LT_SPOT,
+	LT_END,
+};
+
+enum RenderGroup
+{
+	RG_LANDSCAPE,
+	RG_DEFAULT,
+	RG_ALPHA,
+	RG_HUD,
+	RG_UI,
+	RG_END,
+};
+
+enum RenderMode
+{
+	RM_FORWARD,
+	RM_DEFERRED,
 };

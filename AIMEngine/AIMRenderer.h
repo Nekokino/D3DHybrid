@@ -2,7 +2,9 @@
 #include "AIMComponent.h"
 #include "AIMMesh.h"
 #include "AIMShader.h"
+#include "RenderState.h"
 
+class AIMMaterial;
 class Engine_DLL AIMRenderer : public AIMComponent
 {
 	friend class AIMObject;
@@ -11,11 +13,14 @@ private:
 	Ezptr<AIMShader> Shader;
 	Ezptr<AIMMesh> Mesh;
 	ID3D11InputLayout* InputLayout = nullptr;
+	Ezptr<AIMMaterial> Material;
+	Ezptr<RenderState> RenderStateList[RS_END];
 
 public:
 	void SetMesh(const std::string& _Key);
 	void SetShader(const std::string& _Key);
 	void SetInputLayout(const std::string& _Key);
+	void SetRenderState(const std::string& _Key);
 
 public:
 	virtual void Start();

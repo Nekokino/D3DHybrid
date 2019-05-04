@@ -11,7 +11,9 @@ UINT ShaderManager::InputSize = 0;
 
 bool ShaderManager::Init()
 {
-	char* Entry[ST_END] = {};
+	std::string Entry[ST_END] = {};
+
+#pragma region StandardColorShader
 
 	Entry[ST_VTX] = "StandardColorVS";
 	Entry[ST_PIX] = "StandardColorPS";
@@ -30,7 +32,102 @@ bool ShaderManager::Init()
 		return false;
 	}
 
+#pragma endregion
+
+#pragma region StandardColorNormalShader
+
+	Entry[ST_VTX] = "StandardColorNormalVS";
+	Entry[ST_PIX] = "StandardColorNormalPS";
+
+	if (false == LoadShader("StandardColorNormalShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	AddInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+
+	if (false == CreateInputLayout("StandardColorNormalLayout", "StandardColorNormalShader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region SkyShader
+
+	Entry[ST_VTX] = "SkyVS";
+	Entry[ST_PIX] = "SkyPS";
+
+	if (false == LoadShader("SkyShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	AddInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+
+	if (false == CreateInputLayout("StandardPosLayout", "SkyShader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region StandardVertex3DShader
+
+	Entry[ST_VTX] = "StandardVertex3DVS";
+	Entry[ST_PIX] = "StandardVertex3DPS";
+
+	if (false == LoadShader("Vertex3DShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	AddInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 8, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BLENDWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+
+	if (false == CreateInputLayout("StandardVertex3DLayout", "Vertex3DShader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region StandardUVShader
+
+	Entry[ST_VTX] = "DebugVS";
+	Entry[ST_PIX] = "DebugPS";
+
+	if (false == LoadShader("DebugShader", TEXT("Debug.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	AddInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 8, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+
+	if (false == CreateInputLayout("StandardUVLayout", "DebugShader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region ConstBuffer
+
 	CreateConstBuffer("Transform", sizeof(TransformConstBuffer), 0, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Material", sizeof(Material), 1, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Light", sizeof(LightInfo), 2, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Render", sizeof(RenderConstBuffer), 3, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Debug", sizeof(DebugConstBuffer), 9, CS_VERTEX | CS_PIXEL);
+
+#pragma endregion
 
 
 	return true;
@@ -48,8 +145,7 @@ void ShaderManager::Release()
 	{
 		if (StartIter->second != nullptr)
 		{
-			//Release 안해줘도 문제가 없네? 어디서 지우나?
-			//StartIter->second->Release();
+			StartIter->second->Release();
 			StartIter->second = nullptr;
 		}
 	}
@@ -59,7 +155,7 @@ void ShaderManager::Release()
 }
 
 
-bool ShaderManager::LoadShader(const std::string & _Name, const TCHAR * _FileName, char * _Entry[ST_END], const std::string & _PathKey)
+bool ShaderManager::LoadShader(const std::string & _Name, const TCHAR * _FileName, std::string _Entry[ST_END], const std::string & _PathKey)
 {
 	Ezptr<AIMShader> Shader = FindShader(_Name);
 
