@@ -42,6 +42,8 @@ public:
 class AIMLight;
 class AIMSampler;
 class RenderState;
+class AIMShader;
+class AIMMesh;
 class RenderManager
 {
 private:
@@ -53,9 +55,19 @@ private:
 	static RenderMode RM;
 	static RenderConstBuffer RenderCBuffer;
 
-	static Ezptr<AIMSampler> LinearSampler;
-	static Ezptr<AIMSampler> PointSampler;
 	static Ezptr<RenderState> DepthDisable;
+	static Ezptr<RenderState> AccBlend;
+	static Ezptr<RenderState> AlphaBlend;
+	static Ezptr<RenderState> CullNone;
+
+	static Ezptr<AIMShader> LightAccDirShader;
+	static Ezptr<AIMShader> LightAccPointShader;
+	static Ezptr<AIMShader> LightAccSpotShader;
+	static Ezptr<AIMShader> LightBlendShader;
+	static Ezptr<AIMShader> LightBlendRenderShader;
+
+	static Ezptr<AIMMesh> LightPointVolume;
+	static ID3D11InputLayout* LightPointLayout;
 
 public:
 	static Ezptr<AIMLight> GetFirstLight();
@@ -71,6 +83,9 @@ public:
 public:
 	static bool CreateRasterizerState(const std::string& _Name, D3D11_FILL_MODE _Fill = D3D11_FILL_SOLID, D3D11_CULL_MODE _Cull = D3D11_CULL_BACK);
 	static bool CreateDepthState(const std::string& _Name, BOOL _Enable = TRUE, D3D11_DEPTH_WRITE_MASK _WriteMask = D3D11_DEPTH_WRITE_MASK_ALL, D3D11_COMPARISON_FUNC _DepthFunc = D3D11_COMPARISON_LESS);
+	static bool AddTargetBlendDesc(const std::string& _Name, BOOL _Enable = FALSE, D3D11_BLEND _SrcBlend = D3D11_BLEND_ONE, D3D11_BLEND _DestBlend = D3D11_BLEND_ZERO, D3D11_BLEND_OP _Op = D3D11_BLEND_OP_ADD,
+		D3D11_BLEND _SrcBlendAlpha = D3D11_BLEND_ONE, D3D11_BLEND _DestBlendAlph = D3D11_BLEND_ZERO, D3D11_BLEND_OP _AlphaOp = D3D11_BLEND_OP_ADD, UINT _WriteMask = D3D11_COLOR_WRITE_ENABLE_ALL);
+	static bool CreateBlendState(const std::string& _Name, BOOL _AlphaToCoverage = FALSE, BOOL _IndependentBlend = FALSE);
 
 	static bool CreateRenderTarget(const std::string& _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], DXGI_FORMAT _DepthFormat = DXGI_FORMAT_UNKNOWN);
 	static bool OnDebugRenderTarget(const std::string& _Name, const Vec3& _Pos, const Vec3& _Scale);
@@ -90,6 +105,12 @@ private:
 	static void RenderForward(float _Time);
 	static void RenderDeferred(float _Time);
 	static void RenderGBuffer(float _Time);
+	static void RenderLightAcc(float _Time);
+	static void RenderLightDir(float _Time, Ezptr<AIMLight> _Light);
+	static void RenderLightPoint(float _Time, Ezptr<AIMLight> _Light);
+	static void RenderLightSpot(float _Time, Ezptr<AIMLight> _Light);
+	static void RenderLightBlend(float _Time);
+	static void RenderLightBlendRender(float _Time);
 private:
 	RenderManager() {}
 	virtual ~RenderManager() = 0 {}

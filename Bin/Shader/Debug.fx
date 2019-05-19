@@ -37,7 +37,7 @@ PS_Out DebugPS(VS_Out_UV _In)
 {
     PS_Out Out = (PS_Out) 0.0f;
 
-    float4 Color = DiffuseTex.Sample(DiffuseSmp, _In.UV);
+    float4 Color = DiffuseTex.Sample(LinearSmp, _In.UV);
 
     if (Color.a == 0.0f)
         clip(-1);

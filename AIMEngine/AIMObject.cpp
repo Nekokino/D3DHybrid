@@ -5,6 +5,8 @@
 #include "AIMScene.h"
 #include "SceneManager.h"
 #include "AIMSampler.h"
+#include "AIMCollider.h"
+#include "CollisionManager.h"
 
 std::unordered_map<AIMScene*, std::unordered_map<std::string, Ezptr<AIMObject>>> AIMObject::PrototypeMap;
 
@@ -19,7 +21,8 @@ AIMObject::AIMObject(const AIMObject & _Other) : Scene(nullptr), Layer(nullptr),
 	Layer = nullptr;
 
 	ComList.clear();
-
+	ColliderList.clear();
+	StartList.clear();
 
 	std::list<Ezptr<AIMComponent>>::const_iterator StartIter = _Other.ComList.begin();
 	std::list<Ezptr<AIMComponent>>::const_iterator EndIter = _Other.ComList.end();
@@ -33,9 +36,15 @@ AIMObject::AIMObject(const AIMObject & _Other) : Scene(nullptr), Layer(nullptr),
 			Transform = Com;
 		}
 
+		else if (Com->GetComType() == CT_COLLIDER)
+		{
+			ColliderList.push_back(Com);
+		}
+
 		Com->SetAIMObject(this);
 		Com->Transform = Transform;
 		ComList.push_back(Com);
+		StartList.push_back(Com);
 	}
 
 	// refcounter 1로 만들어줘야하나?
@@ -44,7 +53,8 @@ AIMObject::AIMObject(const AIMObject & _Other) : Scene(nullptr), Layer(nullptr),
 AIMObject::~AIMObject()
 {
 	ComList.clear();
-
+	ColliderList.clear();
+	StartList.clear();
 }
 
 Ezptr<AIMObject> AIMObject::CreateObject(const std::string & _Name, Ezptr<AIMLayer> _Layer)
@@ -210,15 +220,32 @@ void AIMObject::SetLayer(AIMLayer * _Layer)
 	}
 }
 
+void AIMObject::SetRenderGroup(RenderGroup _RG)
+{
+	RG = _RG;
+}
+
+const std::list<Ezptr<AIMCollider>>* AIMObject::GetColliderList() const
+{
+	return &ColliderList;
+}
+
 void AIMObject::Start()
 {
-	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
-	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
+	if (StartList.empty() == true)
+	{
+		return;
+	}
+
+	std::list<Ezptr<AIMComponent>>::iterator StartIter = StartList.begin();
+	std::list<Ezptr<AIMComponent>>::iterator EndIter = StartList.end();
 
 	for (; StartIter != EndIter; ++StartIter)
 	{
 		(*StartIter)->Start();
 	}
+
+	StartList.clear();
 }
 
 bool AIMObject::Init()
@@ -254,6 +281,8 @@ int AIMObject::Input(float _Time)
 
 int AIMObject::Update(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
 	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
 
@@ -289,6 +318,8 @@ int AIMObject::Update(float _Time)
 
 int AIMObject::LateUpdate(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
 	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
 
@@ -322,6 +353,8 @@ int AIMObject::LateUpdate(float _Time)
 
 int AIMObject::Collision(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
 	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
 
@@ -355,6 +388,8 @@ int AIMObject::Collision(float _Time)
 
 int AIMObject::Render(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
 	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
 
@@ -372,7 +407,39 @@ int AIMObject::Render(float _Time)
 			continue;
 		}
 
+		else if ((*StartIter)->GetComType() == CT_COLLIDER)
+		{
+			++StartIter;
+			continue;
+		}
+
 		(*StartIter)->PrevRender(_Time);
+		++StartIter;
+	}
+
+	StartIter = ComList.begin();
+	EndIter = ComList.end();
+
+	for (; StartIter != EndIter ;)
+	{
+		if (false == (*StartIter)->IsAlive())
+		{
+			StartIter = ComList.erase(StartIter);
+			continue;
+		}
+
+		else if (false == (*StartIter)->IsEnable())
+		{
+			++StartIter;
+			continue;
+		}
+
+		else if ((*StartIter)->GetComType() == CT_COLLIDER)
+		{
+			++StartIter;
+			continue;
+		}
+
 		(*StartIter)->Render(_Time);
 		++StartIter;
 	}
@@ -417,12 +484,64 @@ bool AIMObject::CheckComponent(ComType _Type)
 	return false;
 }
 
+void AIMObject::EraseComponent(const std::string & _Name)
+{
+	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
+	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
+
+	for (;  StartIter != EndIter ; ++StartIter)
+	{
+		if ((*StartIter)->GetNameTag() == _Name)
+		{
+			ComList.erase(StartIter);
+			return;
+		}
+	}
+}
+
+void AIMObject::EraseComponent(ComType _Type)
+{
+	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
+	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
+
+	for (; StartIter != EndIter; ++StartIter)
+	{
+		if ((*StartIter)->GetComType() == _Type)
+		{
+			ComList.erase(StartIter);
+			return;
+		}
+	}
+}
+
+void AIMObject::EraseComponent(Ezptr<AIMComponent> _Com)
+{
+	std::list<Ezptr<AIMComponent>>::iterator StartIter = ComList.begin();
+	std::list<Ezptr<AIMComponent>>::iterator EndIter = ComList.end();
+
+	for (; StartIter != EndIter; ++StartIter)
+	{
+		if ((*StartIter) == _Com)
+		{
+			ComList.erase(StartIter);
+			return;
+		}
+	}
+}
+
 AIMComponent* AIMObject::AddComponent(Ezptr<AIMComponent> _Com)
 {
 	_Com->SetScene(Scene);
 	_Com->SetLayer(Layer);
 	_Com->SetAIMObject(this);
 	_Com->Transform = Transform;
+
+	if (_Com->GetComType() == CT_COLLIDER)
+	{
+		ColliderList.push_back(_Com);
+	}
+
+	StartList.push_back(_Com);
 	
 	ComList.push_back(_Com);
 

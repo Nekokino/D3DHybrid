@@ -68,18 +68,43 @@ bool AIMScene::Init()
 
 	Ezptr<AIMLayer> DefaultLayer = FindLayer("Default");
 
-	Ezptr<AIMObject> GlobalLightObj = AIMObject::CreateObject("GlobalLight", DefaultLayer);
+	Ezptr<AIMObject> GlobalSpotLightObj = AIMObject::CreateObject("GlobalSpotLight", DefaultLayer);
 
-	Ezptr<AIMTransform> LightTransform = GlobalLightObj->GetTransform();
+	Ezptr<AIMTransform> SpotLightTransform = GlobalSpotLightObj->GetTransform();
 
-	LightTransform->SetWorldRotationX(45.0f);
-	LightTransform->SetWorldPosition(0.0f, 1.0f, -1.0f);
+	SpotLightTransform->SetWorldRotationX(90.0f);
+	SpotLightTransform->SetWorldPosition(0.0f, 2.0f, 0.0f);
 
-	Ezptr<AIMLight> GlobalLight = GlobalLightObj->AddComponent<AIMLight>("GlobalLight");
+	Ezptr<AIMLight> GlobalSpotLight = GlobalSpotLightObj->AddComponent<AIMLight>("GlobalSpotLight");
 
-	GlobalLight->SetLightType(LT_SPOT);
-	GlobalLight->SetLightDistance(10.0f);
-	GlobalLight->SetLightAngle(60.0f, 90.0f);
+	GlobalSpotLight->SetLightType(LT_SPOT);
+	GlobalSpotLight->SetLightDistance(2.0f);
+	GlobalSpotLight->SetLightAngle(60.0f, 90.0f);
+	GlobalSpotLight->SetLightColor(Vec4::Red, Vec4::Red * 0.2f, Vec4::Red);
+
+	Ezptr<AIMObject> GlobalPointLightObj = AIMObject::CreateObject("GlobalPointLight", DefaultLayer);
+
+	Ezptr<AIMTransform> PointLightTransform = GlobalPointLightObj->GetTransform();
+
+	PointLightTransform->SetWorldPosition(0.0f, -2.0f, 0.0f);
+
+	Ezptr<AIMLight> GlobalPointLight = GlobalPointLightObj->AddComponent<AIMLight>("GlobalPointLight");
+
+	GlobalPointLight->SetLightType(LT_POINT);
+	GlobalPointLight->SetLightDistance(2.0f);
+
+	Ezptr<AIMObject> GlobalDirLightObj = AIMObject::CreateObject("GlobalDirLight", DefaultLayer);
+
+	Ezptr<AIMTransform> DirLightTransform = GlobalDirLightObj->GetTransform();
+
+	DirLightTransform->SetWorldRotationX(45.0f);
+	DirLightTransform->SetWorldRotationY(90.0f);
+
+	Ezptr<AIMLight> GlobalDirLight = GlobalDirLightObj->AddComponent<AIMLight>("GlobalDirLight");
+
+	GlobalDirLight->SetLightType(LT_DIR);
+
+
 
 	return true;
 }

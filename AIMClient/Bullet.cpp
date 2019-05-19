@@ -4,6 +4,7 @@
 #include <AIMObject.h>
 #include <AIMRenderer.h>
 #include <AIMTransform.h>
+#include <AIMColliderSphere.h>
 
 
 
@@ -34,6 +35,11 @@ bool Bullet::Init()
 
 	Speed = 2.0f;
 	Dist = 3.0f;
+
+	Ezptr<AIMColliderSphere> Body = Object->AddComponent<AIMColliderSphere>("Body");
+
+	Body->SetChannel("PlayerAttack");
+	Body->SetSphereInfo(Vec3::Zero, 1.0f);
 
 	return true;
 }

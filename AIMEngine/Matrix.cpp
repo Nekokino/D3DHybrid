@@ -28,6 +28,14 @@ void _tagMatrix::operator=(const DirectX::XMMATRIX & _m)
 	m = _m;
 }
 
+void _tagMatrix::operator=(float _f[4][4])
+{
+	for (int i = 0; i < 4; i++)
+	{
+		v[i] = _f[i];
+	}
+}
+
 Vec4 & _tagMatrix::operator[](unsigned int _Idx)
 {
 	return v[_Idx];

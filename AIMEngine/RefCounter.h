@@ -40,7 +40,7 @@ private:
 	void DecRef();
 
 public:
-	void SetNameTag(const char* _Tag)
+	void SetNameTag(const std::string& _Tag)
 	{
 		NameTag = _Tag;
 	}
@@ -56,7 +56,7 @@ public:
 
 	bool IsEnable()
 	{
-		return Enable;
+ 		return Enable;
 	}
 
 	void SetAlive(bool _Value)

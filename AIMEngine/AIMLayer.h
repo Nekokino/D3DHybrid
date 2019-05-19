@@ -13,7 +13,10 @@ private:
 public:
 	int GetOrder() const;
 	void SetOrder(int _Order);
+	void Start();
+
 	std::list<Ezptr<AIMObject>> ObjList;
+	std::list<Ezptr<AIMObject>> StartList;
 
 public:
 	bool Init();

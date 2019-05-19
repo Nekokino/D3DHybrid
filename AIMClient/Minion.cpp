@@ -5,6 +5,8 @@
 #include <AIMRenderer.h>
 #include <InputManager.h>
 #include <AIMTransform.h>
+#include <AIMColliderSphere.h>
+#include <AIMColliderOBB.h>
 
 Minion::Minion()
 {
@@ -29,6 +31,18 @@ bool Minion::Init()
 	Ezptr<AIMRenderer> Renderer = Object->AddComponent<AIMRenderer>("MinionRenderer");
 
 	Renderer->SetMesh("Pyramid");
+
+	//Ezptr<AIMColliderSphere> Body = Object->AddComponent<AIMColliderSphere>("Body");
+
+	//Body->SetProfile("Enemy");
+	//Body->SetChannel("Enemy");
+	//Body->SetSphereInfo(Vec3::Zero, 1.0f);
+
+	Ezptr<AIMColliderOBB> Body = Object->AddComponent<AIMColliderOBB>("Body");
+
+	Body->SetProfile("Enemy");
+	Body->SetChannel("Enemy");
+	Body->SetOBBInfo(Vec3::Zero, Vec3(0.5f, 0.5f, 0.5f));
 
 	return true;
 }

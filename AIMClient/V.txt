@@ -21,3 +21,5 @@ Texture, Sampler, Shader 구현
 카메라 및 재질 구현
 Blend, Depth, RasterizerState 구조
 Diferred Lighting 및 RenderTarget 구현
+
+Ver 0.4

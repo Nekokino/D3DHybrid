@@ -74,24 +74,28 @@
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D32</TargetName>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D64</TargetName>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R32</TargetName>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R64</TargetName>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,6 +109,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -119,6 +124,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,6 +143,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,10 +162,20 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AIMAnimation.h" />
     <ClInclude Include="AIMCamera.h" />
+    <ClInclude Include="AIMCollider.h" />
+    <ClInclude Include="AIMColliderAABB.h" />
+    <ClInclude Include="AIMColliderCapsule.h" />
+    <ClInclude Include="AIMColliderOBB.h" />
+    <ClInclude Include="AIMColliderPoint.h" />
+    <ClInclude Include="AIMColliderRay.h" />
+    <ClInclude Include="AIMColliderSphere.h" />
     <ClInclude Include="AIMComponent.h" />
     <ClInclude Include="AIMDevice.h" />
     <ClInclude Include="AIMLayer.h" />
@@ -166,6 +183,7 @@
     <ClInclude Include="AIMMaterial.h" />
     <ClInclude Include="AIMMesh.h" />
     <ClInclude Include="AIMObject.h" />
+    <ClInclude Include="AIMParticle.h" />
     <ClInclude Include="AIMRenderer.h" />
     <ClInclude Include="AIMSampler.h" />
     <ClInclude Include="AIMScene.h" />
@@ -173,11 +191,13 @@
     <ClInclude Include="AIMTexture.h" />
     <ClInclude Include="AIMTransform.h" />
     <ClInclude Include="BlendState.h" />
+    <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DepthStencilState.h" />
     <ClInclude Include="DirectXTex.h" />
     <ClInclude Include="EngineHeader.h" />
     <ClInclude Include="EngineMath.h" />
+    <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Matrix.h" />
@@ -202,7 +222,15 @@
     <ClInclude Include="Flag.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIMAnimation.cpp" />
     <ClCompile Include="AIMCamera.cpp" />
+    <ClCompile Include="AIMCollider.cpp" />
+    <ClCompile Include="AIMColliderAABB.cpp" />
+    <ClCompile Include="AIMColliderCapsule.cpp" />
+    <ClCompile Include="AIMColliderOBB.cpp" />
+    <ClCompile Include="AIMColliderPoint.cpp" />
+    <ClCompile Include="AIMColliderRay.cpp" />
+    <ClCompile Include="AIMColliderSphere.cpp" />
     <ClCompile Include="AIMComponent.cpp" />
     <ClCompile Include="AIMDevice.cpp" />
     <ClCompile Include="AIMLayer.cpp" />
@@ -210,6 +238,7 @@
     <ClCompile Include="AIMMaterial.cpp" />
     <ClCompile Include="AIMMesh.cpp" />
     <ClCompile Include="AIMObject.cpp" />
+    <ClCompile Include="AIMParticle.cpp" />
     <ClCompile Include="AIMRenderer.cpp" />
     <ClCompile Include="AIMSampler.cpp" />
     <ClCompile Include="AIMScene.cpp" />
@@ -217,8 +246,10 @@
     <ClCompile Include="AIMTexture.cpp" />
     <ClCompile Include="AIMTransform.cpp" />
     <ClCompile Include="BlendState.cpp" />
+    <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="DepthStencilState.cpp" />
+    <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="PathManager.cpp" />

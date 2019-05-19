@@ -36,7 +36,7 @@ typedef union Engine_DLL _tagVec3
 
 	_tagVec3(int _x, int _y, int _z)
 	{
-		x = (float)_x; y = (float)_y; z = (float)z;
+		x = (float)_x; y = (float)_y; z = (float)_z;
 	}
 
 	_tagVec3(float _x, float _y, float _z)

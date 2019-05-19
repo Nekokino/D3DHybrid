@@ -121,6 +121,37 @@ bool ResourceManager::Init()
 	CreateSampler("LinearSampler");
 	CreateSampler("PointSampler", D3D11_FILTER_MIN_MAG_MIP_POINT);
 
+	Vec3 Box[8] =
+	{
+		Vec3(-1.f, 1.f, -1.f),
+		Vec3(1.f, 1.f, -1.f),
+		Vec3(-1.f, -1.f, -1.f),
+		Vec3(1.f, -1.f, -1.f),
+		Vec3(-1.f, 1.f, 1.f),
+		Vec3(1.f, 1.f, 1.f),
+		Vec3(-1.f, -1.f, 1.f),
+		Vec3(1.f, -1.f, 1.f)
+	};
+
+	int	BoxIdx[24] = { 0, 1, 0, 2, 1, 3, 2, 3, 4, 0, 5, 1, 6, 2, 7, 3, 4, 5, 5, 7, 6, 7, 4, 6 };
+
+	CreateMesh("ColliderBox", "SkyShader", "StandardPosLayout", Vec3::Axis[AXIS_Y], sizeof(Vec3), 8, D3D11_USAGE_DEFAULT, D3D11_PRIMITIVE_TOPOLOGY_LINELIST, Box, 4, 24, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R32_UINT, BoxIdx);
+
+	Vec3 ParticleVtx = {};
+
+	CreateMesh("Particle", "ParticleShader", "StandardPosLayout", Vec3::Axis[AXIS_Y], sizeof(Vec3), 1, D3D11_USAGE_DEFAULT, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST, &ParticleVtx);
+
+
+	Ezptr<AIMSampler> Sampler = FindSampler("LinearSampler");
+
+	Sampler->VSSetSampler(0);
+	Sampler->PSSetSampler(0);
+
+	Sampler = FindSampler("PointSampler");
+
+	Sampler->VSSetSampler(1);
+	Sampler->PSSetSampler(1);
+
 	return true;
 }
 
@@ -189,6 +220,112 @@ bool ResourceManager::CreateSpherePos(const std::string & _Name, const std::stri
 	return true;
 }
 
+bool ResourceManager::LoadMesh(const std::string & _Name, const TCHAR * _FileName, const Vec3 & _View, const std::string & _Path)
+{
+	Ezptr<AIMMesh> Mesh = FindMesh(_Name);
+
+	if (Mesh != nullptr)
+	{
+		tassertmsg(true, "Overlapped Mesh Name");
+		return false;
+	}
+
+	Mesh = new AIMMesh;
+
+	if (false == Mesh->LoadMesh(_Name, _FileName, _View, _Path))
+	{
+		tassertmsg(true, "Failed To Load Mesh");
+		return false;
+	}
+
+	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
+
+	return true;
+}
+
+bool ResourceManager::LoadMesh(const std::string & _Name, const char * _FileName, const Vec3 & _View, const std::string & _Path)
+{
+	Ezptr<AIMMesh> Mesh = FindMesh(_Name);
+
+	if (Mesh != nullptr)
+	{
+		tassertmsg(true, "Overlapped Mesh Name");
+		return false;
+	}
+
+	Mesh = new AIMMesh;
+
+	if (false == Mesh->LoadMesh(_Name, _FileName, _View, _Path))
+	{
+		tassertmsg(true, "Failed To Load Mesh");
+		return false;
+	}
+
+	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
+
+	return true;
+}
+
+bool ResourceManager::LoadMeshFromFullPath(const std::string & _Name, const TCHAR * _FullPath, const Vec3 & _View)
+{
+	Ezptr<AIMMesh> Mesh = FindMesh(_Name);
+
+	if (Mesh != nullptr)
+	{
+		tassertmsg(true, "Overlapped Mesh Name");
+		return false;
+	}
+
+	Mesh = new AIMMesh;
+
+	if (false == Mesh->LoadMeshFromFullPath(_Name, _FullPath, _View))
+	{
+		tassertmsg(true, "Failed To Load Mesh");
+		return false;
+	}
+
+	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
+
+	return true;
+}
+
+bool ResourceManager::LoadMeshFromFullPath(const std::string & _Name, const char * _FullPath, const Vec3 & _View)
+{
+	Ezptr<AIMMesh> Mesh = FindMesh(_Name);
+
+	if (Mesh != nullptr)
+	{
+		tassertmsg(true, "Overlapped Mesh Name");
+		return false;
+	}
+
+	Mesh = new AIMMesh;
+
+	if (false == Mesh->LoadMeshFromFullPath(_Name, _FullPath, _View))
+	{
+		tassertmsg(true, "Failed To Load Mesh");
+		return false;
+	}
+
+	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
+
+	return true;
+}
+
+bool ResourceManager::DeleteMesh(const std::string & _Name)
+{
+	std::unordered_map<std::string, Ezptr<AIMMesh>>::iterator iter = MeshMap.find(_Name);
+
+	if (iter == MeshMap.end())
+	{
+		return false;
+	}
+
+	MeshMap.erase(iter);
+
+	return true;
+}
+
 Ezptr<AIMMesh> ResourceManager::FindMesh(const std::string & _Name)
 {
 	std::unordered_map<std::string, Ezptr<AIMMesh>>::iterator iter = MeshMap.find(_Name);
@@ -221,6 +358,69 @@ bool ResourceManager::LoadTexture(const std::string & _Name, const TCHAR * _File
 	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Tex));
 
 	return true;
+}
+
+bool ResourceManager::LoadTextureFromFullPath(const std::string & _Name, const TCHAR * _FullPath)
+{
+	Ezptr<AIMTexture> Texture = FindTexture(_Name);
+
+	if (Texture != nullptr)
+	{
+		tassertmsg(true, "Overlapeed Texture Name");
+		return false;
+	}
+
+	Texture = new AIMTexture;
+
+	if (false == Texture->LoadTexture(_Name, _FullPath))
+	{
+		tassertmsg(true, "Failed To Load Texture");
+		return false;
+	}
+
+	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
+
+	return true;
+}
+
+bool ResourceManager::LoadTexture(const std::string & _Name, const std::vector<TCHAR*>& _FileNameVec, const std::string & _Path)
+{
+	Ezptr<AIMTexture> Texture = FindTexture(_Name);
+
+	if (Texture != nullptr)
+	{
+		return false;
+	}
+
+	Texture = new AIMTexture;
+
+	if (false == Texture->LoadTexture(_Name, _FileNameVec, _Path))
+	{
+		return false;
+	}
+
+	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
+
+	return true;
+}
+
+bool ResourceManager::LoadTextureFromFullPath(const std::string & _Name, const std::vector<TCHAR*>& _FullPathVec)
+{
+	Ezptr<AIMTexture> Texture = FindTexture(_Name);
+
+	if (Texture != nullptr)
+	{
+		return false;
+	}
+
+	Texture = new AIMTexture;
+
+	if (false == Texture->LoadTexture(_Name, _FullPathVec))
+	{
+		return false;
+	}
+
+	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
 }
 
 Ezptr<AIMTexture> ResourceManager::FindTexture(const std::string & _Name)

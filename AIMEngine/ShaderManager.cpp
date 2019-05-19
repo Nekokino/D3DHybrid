@@ -99,6 +99,30 @@ bool ShaderManager::Init()
 
 #pragma endregion
 
+#pragma region StandardTexNormalShader
+
+	Entry[ST_VTX] = "StandardTexNormalVS";
+	Entry[ST_PIX] = "Standard3DPS";
+
+	if (false == LoadShader("StandardTexNormalShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region Standard3DShader
+
+	Entry[ST_VTX] = "Standard3DVS";
+	Entry[ST_PIX] = "Standard3DPS";
+
+	if (false == LoadShader("Standard3DShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
 #pragma region StandardUVShader
 
 	Entry[ST_VTX] = "DebugVS";
@@ -119,13 +143,104 @@ bool ShaderManager::Init()
 
 #pragma endregion
 
+#pragma region LightAccDirShader
+
+	Entry[ST_VTX] = "LightAccDirVS";
+	Entry[ST_PIX] = "LightAccPS";
+
+	if (false == LoadShader("LightAccDirShader", TEXT("Light.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region LightAccPointShader
+
+	Entry[ST_VTX] = "LightAccPointVS";
+	Entry[ST_PIX] = "LightAccPS";
+
+	if (false == LoadShader("LightAccPointShader", TEXT("Light.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region LightAccSpotShader
+
+	Entry[ST_VTX] = "LightAccSpotVS";
+	Entry[ST_PIX] = "LightAccPS";
+
+	if (false == LoadShader("LightAccSpotShader", TEXT("Light.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region LightBlendShader
+
+	Entry[ST_VTX] = "LightAccDirVS";
+	Entry[ST_PIX] = "LightBlendPS";
+
+	if (false == LoadShader("LightBlendShader", TEXT("Light.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region LightBlendRenderShader
+
+	Entry[ST_VTX] = "LightAccDirVS";
+	Entry[ST_PIX] = "LightBlendRenderPS";
+
+	if (false == LoadShader("LightBlendRenderShader", TEXT("Light.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region ColliderShader
+
+	Entry[ST_VTX] = "ColliderVS";
+	Entry[ST_PIX] = "ColliderPS";
+
+	if (false == LoadShader("ColliderShader", TEXT("Collider.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+
+#pragma region ParticleShader
+
+	Entry[ST_VTX] = "ParticleVS";
+	Entry[ST_PIX] = "ParticlePS";
+	Entry[ST_GEO] = "ParticleGS";
+
+	if (false == LoadShader("ParticleShader", TEXT("Particle.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	Entry[ST_GEO] = "";
+
+#pragma endregion
+
+
+
 #pragma region ConstBuffer
 
-	CreateConstBuffer("Transform", sizeof(TransformConstBuffer), 0, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Transform", sizeof(TransformConstBuffer), 0, CS_VERTEX | CS_PIXEL | CS_GEOMETRY);
 	CreateConstBuffer("Material", sizeof(Material), 1, CS_VERTEX | CS_PIXEL);
 	CreateConstBuffer("Light", sizeof(LightInfo), 2, CS_VERTEX | CS_PIXEL);
 	CreateConstBuffer("Render", sizeof(RenderConstBuffer), 3, CS_VERTEX | CS_PIXEL);
 	CreateConstBuffer("Debug", sizeof(DebugConstBuffer), 9, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Collider", sizeof(Vec4), 10, CS_PIXEL);
+	CreateConstBuffer("Particle", sizeof(ParticleConstBuffer), 10, CS_GEOMETRY);
 
 #pragma endregion
 
@@ -316,6 +431,11 @@ bool ShaderManager::UpdateConstBuffer(const std::string & _Name, void * _Data)
 	if (Buffer->Constant & CS_PIXEL)
 	{
 		GetAIMContext->PSSetConstantBuffers(Buffer->Register, 1, &Buffer->Buffer);
+	}
+
+	if (Buffer->Constant & CS_GEOMETRY)
+	{
+		GetAIMContext->GSSetConstantBuffers(Buffer->Register, 1, &Buffer->Buffer);
 	}
 
 	return true;

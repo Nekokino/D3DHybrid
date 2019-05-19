@@ -21,6 +21,7 @@ AIMLight::~AIMLight()
 
 void AIMLight::SetShader()
 {
+	Transform->PrevRender(0.0f);
 	ShaderManager::UpdateConstBuffer("Light", &Info);
 }
 
@@ -40,6 +41,17 @@ int AIMLight::Input(float _Time)
 
 int AIMLight::Update(float _Time)
 {
+	switch (Info.Type)
+	{
+	case LT_POINT:
+		Transform->SetWorldScale(Info.Distance, Info.Distance, Info.Distance);
+		break;
+	case LT_SPOT:
+		break;
+	default:
+		break;
+	}
+
 	return 0;
 }
 
@@ -51,7 +63,12 @@ int AIMLight::LateUpdate(float _Time)
 	Ezptr<AIMCamera> Cam = Scene->GetMainCamera();
 
 	Info.Pos = Info.Pos.TransformCoord(Cam->GetView());
-	Info.Direction = Info.Direction.TransformNormal(Cam->GetView()) * -1.0f;
+	Info.Direction = Info.Direction.TransformNormal(Cam->GetView());
+
+	if (Info.Type == LT_DIR)
+	{
+		Info.Direction *= -1.0f;
+	}
 	Info.Direction.Normalize();
 
 	return 0;

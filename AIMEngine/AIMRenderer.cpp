@@ -7,6 +7,7 @@
 #include "AIMObject.h"
 #include "RenderManager.h"
 #include "AIMLight.h"
+#include "AIMAnimation.h"
 
 AIMRenderer::AIMRenderer()
 {
@@ -36,6 +37,70 @@ void AIMRenderer::SetMesh(const std::string & _Key)
 	{
 		SetShader(Mesh->GetShaderName());
 		SetInputLayout(Mesh->GetInputLayoutName());
+	}
+
+	Transform->SetLocalRelativeView(Mesh->GetView());
+}
+
+void AIMRenderer::SetMesh(const std::string & _Key, const TCHAR * _FileName, const Vec3 & _View, const std::string & _Path)
+{
+	ResourceManager::LoadMesh(_Key, _FileName, _View, _Path);
+
+	Mesh = ResourceManager::FindMesh(_Key);
+
+	if (Mesh != nullptr)
+	{
+		SetShader(Mesh->GetShaderName());
+		SetInputLayout(Mesh->GetInputLayoutName());
+
+		Ezptr<AIMMaterial> TmpMaterial = Mesh->CloneMaterial();
+
+		if (TmpMaterial != nullptr)
+		{
+			EraseComponent(CT_MATERIAL);
+			Object->AddComponent(TmpMaterial);
+			Material = TmpMaterial;
+		}
+
+		Ezptr<AIMAnimation> TmpAnimation = Mesh->CloneAnimation();
+		
+		if (TmpAnimation != nullptr)
+		{
+			EraseComponent(CT_ANIMATION);
+			Object->AddComponent(TmpAnimation);
+		}
+	}
+
+	Transform->SetLocalRelativeView(Mesh->GetView());
+}
+
+void AIMRenderer::SetMeshFromFullPath(const std::string & _Key, const TCHAR * _FileName, const Vec3 & _View)
+{
+	ResourceManager::LoadMeshFromFullPath(_Key, _FileName, _View);
+
+	Mesh = ResourceManager::FindMesh(_Key);
+
+	if (Mesh != nullptr)
+	{
+		SetShader(Mesh->GetShaderName());
+		SetInputLayout(Mesh->GetInputLayoutName());
+
+		Ezptr<AIMMaterial> TmpMaterial = Mesh->CloneMaterial();
+
+		if (TmpMaterial != nullptr)
+		{
+			EraseComponent(CT_MATERIAL);
+			Object->AddComponent(TmpMaterial);
+			Material = TmpMaterial;
+		}
+
+		Ezptr<AIMAnimation> TmpAnimation = Mesh->CloneAnimation();
+
+		if (TmpAnimation != nullptr)
+		{
+			EraseComponent(CT_ANIMATION);
+			Object->AddComponent(TmpAnimation);
+		}
 	}
 
 	Transform->SetLocalRelativeView(Mesh->GetView());
@@ -125,15 +190,28 @@ int AIMRenderer::Render(float _Time)
 
 	for (int AA = 0; AA < Container; ++AA)
 	{
-		size_t Subset = Mesh->GetSubsetCount();
-		for (int BB = 0; BB < Subset; ++BB)
+		size_t Subset = Mesh->GetSubsetCount(AA);
+
+		if (Subset > 0)
+		{
+			for (int BB = 0; BB < Subset; ++BB)
+			{
+				if (Material != nullptr)
+				{
+					Material->SetShader(AA, BB);
+				}
+
+				Mesh->Render(AA, BB);
+			}
+		}
+		else
 		{
 			if (Material != nullptr)
 			{
-				Material->SetShader(AA, BB);
+				Material->SetShader(AA, 0);
 			}
 
-			Mesh->Render(AA, BB);
+			Mesh->Render(AA, 0);
 		}
 	}
 

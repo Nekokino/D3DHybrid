@@ -18,6 +18,8 @@ private:
 
 public:
 	void SetMesh(const std::string& _Key);
+	void SetMesh(const std::string& _Key, const TCHAR* _FileName, const Vec3& _View = Vec3::Axis[AXIS_Z], const std::string& _Path = "Mesh");
+	void SetMeshFromFullPath(const std::string& _Key, const TCHAR* _FileName, const Vec3& _View = Vec3::Axis[AXIS_Z]);
 	void SetShader(const std::string& _Key);
 	void SetInputLayout(const std::string& _Key);
 	void SetRenderState(const std::string& _Key);

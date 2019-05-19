@@ -10,6 +10,7 @@
 #include "AIMShader.h"
 #include "AIMMesh.h"
 #include "InputManager.h"
+#include "CollisionManager.h"
 
 bool Core::Loop = true;
 Core* Core::pInst = nullptr;
@@ -17,7 +18,7 @@ Core* Core::pInst = nullptr;
 Core::Core()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(13587);
+	//_CrtSetBreakAlloc(6393);
 
 	memset(ClearColor, 0, sizeof(float) * 4);
 }
@@ -31,6 +32,7 @@ Core::~Core()
 
 	SceneManager::Release();
 
+	CollisionManager::Release();
 	InputManager::Release();
 	TimeManager::Release();
 	RenderManager::Release();
@@ -92,6 +94,12 @@ bool Core::Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _Win
 	if (false == TimeManager::Init())
 	{
 		tassertmsg(true, "TimeManager Init Failed");
+		return false;
+	}
+
+	if (false == CollisionManager::Init())
+	{
+		tassertmsg(true, "CollisionManager Init Failed");
 		return false;
 	}
 
@@ -240,7 +248,7 @@ int Core::LateUpdate(float _Time)
 
 int Core::Collision(float _Time)
 {
-	SceneManager::Collision(_Time);
+	CollisionManager::Collision(_Time);
 
 	return 0;
 }

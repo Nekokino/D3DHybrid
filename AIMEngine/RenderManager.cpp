@@ -6,6 +6,9 @@
 #include "AIMLight.h"
 #include "AIMDevice.h"
 #include "ResourceManager.h"
+#include "AIMShader.h"
+#include "AIMMesh.h"
+#include "CollisionManager.h"
 
 std::unordered_map<std::string, Ezptr<RenderState>> RenderManager::RenderStateMap;
 std::unordered_map<std::string, Ezptr<RenderTarget>> RenderManager::RenderTargetMap;
@@ -14,13 +17,26 @@ RenderList RenderManager::LightList;
 RenderList RenderManager::RenderGroupList[RG_END];
 RenderMode RenderManager::RM = RM_DEFERRED;
 RenderConstBuffer RenderManager::RenderCBuffer;
-Ezptr<AIMSampler> RenderManager::LinearSampler;
-Ezptr<AIMSampler> RenderManager::PointSampler;
 Ezptr<RenderState> RenderManager::DepthDisable;
+Ezptr<RenderState> RenderManager::AccBlend;
+Ezptr<AIMShader> RenderManager::LightAccDirShader;
+Ezptr<RenderState> RenderManager::AlphaBlend;
+Ezptr<AIMShader> RenderManager::LightBlendShader;
+Ezptr<AIMShader> RenderManager::LightBlendRenderShader;
+Ezptr<RenderState> RenderManager::CullNone;
+Ezptr<AIMShader> RenderManager::LightAccPointShader;
+Ezptr<AIMShader> RenderManager::LightAccSpotShader;
+Ezptr<AIMMesh> RenderManager::LightPointVolume;
+ID3D11InputLayout* RenderManager::LightPointLayout = nullptr;
+
 
 Ezptr<AIMLight> RenderManager::GetFirstLight()
 {
 	if (LightList.Size == 0)
+	{
+		return nullptr;
+	}
+	else if (RM == RM_DEFERRED)
 	{
 		return nullptr;
 	}
@@ -40,13 +56,35 @@ bool RenderManager::Init()
 
 	CreateRasterizerState("CullNone", D3D11_FILL_SOLID, D3D11_CULL_NONE);
 
+	CreateRasterizerState("WireFrame", D3D11_FILL_WIREFRAME);
+
 	CreateDepthState("LessEqual", TRUE, D3D11_DEPTH_WRITE_MASK_ALL, D3D11_COMPARISON_LESS_EQUAL);
 
 	CreateDepthState("DepthDisable", FALSE);
+	
+	AddTargetBlendDesc("AlphaBlend", TRUE, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA);
+	
+	CreateBlendState("AlphaBlend", TRUE, FALSE);
+
+	AddTargetBlendDesc("AccBlend", TRUE, D3D11_BLEND_ONE, D3D11_BLEND_ONE);
+
+	CreateBlendState("AccBlend", TRUE, FALSE);
+
+	CullNone = FindRenderState("CullNone");
 
 	DepthDisable = FindRenderState("DepthDisable");
+	AccBlend = FindRenderState("AccBlend");
+	AlphaBlend = FindRenderState("AlphaBlend");
+	LightAccDirShader = ShaderManager::FindShader("LightAccDirShader");
+	LightAccPointShader = ShaderManager::FindShader("LightAccPointShader");
+	LightAccSpotShader = ShaderManager::FindShader("LightAccSpotShader");
 
-	float ClearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	LightPointLayout = ShaderManager::FindInputLayout("StandardPosLayout");
+	LightPointVolume = ResourceManager::FindMesh("Sky");
+	LightBlendShader = ShaderManager::FindShader("LightBlendShader");
+	LightBlendRenderShader = ShaderManager::FindShader("LightBlendRenderShader");
+
+	float ClearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (false == CreateRenderTarget("Albedo", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
 	{
@@ -105,16 +143,45 @@ bool RenderManager::Init()
 	AddMultiRenderTarget("GBuffer", "MaterialSpc");
 	AddMultiRenderTarget("GBuffer", "MaterialEmv");
 
-	LinearSampler = ResourceManager::FindSampler("LinearSampler");
-	PointSampler = ResourceManager::FindSampler("PointSampler");
+	if (false == CreateRenderTarget("LightDiffuse", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	{
+		return false;
+	}
+
+	OnDebugRenderTarget("LightDiffuse", Vec3(100.0, 0.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
+
+	if (false == CreateRenderTarget("LightSpecular", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	{
+		return false;
+	}
+
+	OnDebugRenderTarget("LightSpecular", Vec3(100.0, 100.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
+
+	if (false == CreateRenderTarget("LightBlend", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	{
+		return false;
+	}
+
+	OnDebugRenderTarget("LightBlend", Vec3(200.0, 0.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
+
+	AddMultiRenderTarget("LightAcc", "LightDiffuse");
+	AddMultiRenderTarget("LightAcc", "LightSpecular");
+
 
 	return true;
 }
 
 void RenderManager::Release()
 {
-	LinearSampler = nullptr;
-	PointSampler = nullptr;
+	CullNone = nullptr;
+	LightAccPointShader = nullptr;
+	LightAccSpotShader = nullptr;
+	LightPointVolume = nullptr;
+	AlphaBlend = nullptr;
+	LightBlendShader = nullptr;
+	LightBlendRenderShader = nullptr;
+	AccBlend = nullptr;
+	LightAccDirShader = nullptr;
 	DepthDisable = nullptr;
 	MultiRenderTargetMap.clear();
 	RenderStateMap.clear();
@@ -124,8 +191,6 @@ void RenderManager::Release()
 
 void RenderManager::AddRenderObject(Ezptr<AIMObject> _Obj)
 {
-	RenderGroup Tmp = RG_END;
-
 	if (_Obj->CheckComponent(CT_LIGHT) == true)
 	{
 		if (LightList.Size == LightList.Capacity)
@@ -153,16 +218,8 @@ void RenderManager::AddRenderObject(Ezptr<AIMObject> _Obj)
 	{
 		return; 
 	}
-	else if (_Obj->CheckComponent(CT_LANDSCAPE) == true)
-	{
-		Tmp = RG_LANDSCAPE;
-	}
-	else if (_Obj->CheckComponent(CT_UI) == true)
-	{
-		Tmp = RG_UI;
-	}
-	else
-		Tmp = RG_DEFAULT;
+
+	RenderGroup Tmp = _Obj->GetRenderGroup();
 
 	if (RenderGroupList[Tmp].Size == RenderGroupList[Tmp].Capacity)
 	{
@@ -198,8 +255,6 @@ void RenderManager::Render(float _Time)
 		RenderDeferred(_Time);
 		break;
 	}
-
-	LinearSampler->PSSetSampler(0);
 
 	DepthDisable->SetState();
 
@@ -258,6 +313,44 @@ bool RenderManager::CreateDepthState(const std::string & _Name, BOOL _Enable, D3
 	}
 
 	RenderStateMap.insert(std::unordered_map<std::string, Ezptr<RenderState>>::value_type(_Name, State));
+
+	return true;
+}
+
+bool RenderManager::AddTargetBlendDesc(const std::string & _Name, BOOL _Enable, D3D11_BLEND _SrcBlend, D3D11_BLEND _DestBlend, D3D11_BLEND_OP _Op, D3D11_BLEND _SrcBlendAlpha, D3D11_BLEND _DestBlendAlpha, D3D11_BLEND_OP _AlphaOp, UINT _WriteMask)
+{
+	Ezptr<BlendState> State = FindRenderState(_Name);
+
+	if (State == nullptr)
+	{
+		State = new BlendState;
+		RenderStateMap.insert(std::unordered_map<std::string, Ezptr<RenderState>>::value_type(_Name, State));
+	}
+
+	State->AddTargetBlendDesc(_Enable, _SrcBlend, _DestBlend, _Op, _SrcBlendAlpha, _DestBlendAlpha, _AlphaOp, _WriteMask);
+
+	return true;
+}
+
+bool RenderManager::CreateBlendState(const std::string & _Name, BOOL _AlphaToCoverage, BOOL _IndependentBlend)
+{
+	Ezptr<BlendState> State = FindRenderState(_Name);
+
+	if (State == nullptr)
+	{
+		tassertmsg(true, "BlendState Name Unexist");
+		return false;
+	}
+
+	if (false == State->CreateState(_Name, _AlphaToCoverage, _IndependentBlend))
+	{
+		std::unordered_map<std::string, Ezptr<RenderState>>::iterator FindIter = RenderStateMap.find(_Name);
+
+		RenderStateMap.erase(FindIter);
+
+		tassertmsg(true, "Failed To Create BlendState");
+		return false;
+	}
 
 	return true;
 }
@@ -370,7 +463,7 @@ void RenderManager::SetMultiRenderTarget(const std::string & _Name)
 		MRT->OldTargetVec.resize(MRT->RenderTargetVec.size());
 	}
 
-	GetAIMContext->OMGetRenderTargets(MRT->RenderTargetVec.size(), &MRT->OldTargetVec[0], &MRT->OldDepthView);
+	GetAIMContext->OMGetRenderTargets((UINT)MRT->RenderTargetVec.size(), &MRT->OldTargetVec[0], &MRT->OldDepthView);
 
 	std::vector<ID3D11RenderTargetView*> TargetVec;
 	TargetVec.resize(MRT->RenderTargetVec.size());
@@ -387,7 +480,7 @@ void RenderManager::SetMultiRenderTarget(const std::string & _Name)
 		Depth = MRT->OldDepthView;
 	}
 
-	GetAIMContext->OMSetRenderTargets(MRT->RenderTargetVec.size(), &TargetVec[0], Depth);
+	GetAIMContext->OMSetRenderTargets((UINT)MRT->RenderTargetVec.size(), &TargetVec[0], Depth);
 }
 
 void RenderManager::ResetMultiRenderTarget(const std::string & _Name)
@@ -399,7 +492,7 @@ void RenderManager::ResetMultiRenderTarget(const std::string & _Name)
 		return;
 	}
 
-	GetAIMContext->OMSetRenderTargets(MRT->RenderTargetVec.size(), &MRT->OldTargetVec[0], MRT->OldDepthView);
+	GetAIMContext->OMSetRenderTargets((UINT)MRT->RenderTargetVec.size(), &MRT->OldTargetVec[0], MRT->OldDepthView);
 
 	if (MRT->OldDepthView != nullptr)
 	{
@@ -462,13 +555,38 @@ void RenderManager::RenderForward(float _Time)
 			RenderGroupList[AA].ObjList[BB]->Render(_Time);
 		}
 
+		if (AA == RG_DEFAULT)
+		{
+			CollisionManager::Render(_Time);
+		}
+
 		RenderGroupList[AA].Size = 0;
 	}
 }
 
 void RenderManager::RenderDeferred(float _Time)
 {
+	// GBuffer 그리고
 	RenderGBuffer(_Time);
+
+	// 조면 누적 버퍼 생성
+	RenderLightAcc(_Time);
+
+	// 조명누적버퍼 + Albedo합친 최종조명처리 타겟
+	RenderLightBlend(_Time);
+
+	// 조명이 합성된 최종타겟
+	RenderLightBlendRender(_Time);
+
+	CollisionManager::Render(_Time);
+
+	for (int AA = RG_ALPHA; AA < RG_END; AA++)
+	{
+		for (int BB = 0; BB < RenderGroupList[AA].Size; BB++)
+		{
+			RenderGroupList[AA].ObjList[BB]->Render(_Time);
+		}
+	}
 
 	for (int i = 0; i < RG_END; i++)
 	{
@@ -491,4 +609,170 @@ void RenderManager::RenderGBuffer(float _Time)
 	}
 
 	ResetMultiRenderTarget("GBuffer");
+}
+
+void RenderManager::RenderLightAcc(float _Time)
+{
+	ClearMultiRenderTarget("LightAcc");
+
+	SetMultiRenderTarget("LightAcc");
+
+	DepthDisable->SetState();
+	AccBlend->SetState();
+
+	Ezptr<MultiRenderTarget> GBuf = FindMultiRenderTarget("GBuffer");
+
+	GBuf->RenderTargetVec[1]->SetShader(11);
+	GBuf->RenderTargetVec[2]->SetShader(12);
+	GBuf->RenderTargetVec[3]->SetShader(13);
+	GBuf->RenderTargetVec[4]->SetShader(14);
+	GBuf->RenderTargetVec[5]->SetShader(15);
+	GBuf->RenderTargetVec[6]->SetShader(16);
+
+	for (int i = 0; i < LightList.Size; i++)
+	{
+		Ezptr<AIMLight> Light = LightList.ObjList[i]->FindComponent<AIMLight>(CT_LIGHT);
+		
+		switch (Light->GetLightInfo().Type)
+		{
+		case LT_DIR:
+			RenderLightDir(_Time, Light);
+			break;
+		case LT_POINT:
+			RenderLightPoint(_Time, Light);
+			break;
+		case LT_SPOT:
+			RenderLightSpot(_Time, Light);
+			break;
+		}
+	}
+
+	GBuf->RenderTargetVec[1]->ResetShader(11);
+	GBuf->RenderTargetVec[2]->ResetShader(12);
+	GBuf->RenderTargetVec[3]->ResetShader(13);
+	GBuf->RenderTargetVec[4]->ResetShader(14);
+	GBuf->RenderTargetVec[5]->ResetShader(15);
+	GBuf->RenderTargetVec[6]->ResetShader(16);
+
+	DepthDisable->ResetState();
+	AccBlend->ResetState();
+
+	ResetMultiRenderTarget("LightAcc");
+}
+
+void RenderManager::RenderLightDir(float _Time, Ezptr<AIMLight> _Light)
+{
+	LightAccDirShader->SetShader();
+
+	_Light->SetShader();
+
+	// 전체 화면크기의 사각형 출력
+	GetAIMContext->IASetInputLayout(nullptr);
+
+	UINT Offset = 0;
+	GetAIMContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	GetAIMContext->IASetVertexBuffers(0, 0, nullptr, 0, &Offset);
+	GetAIMContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	GetAIMContext->Draw(4, 0);
+}
+
+void RenderManager::RenderLightPoint(float _Time, Ezptr<AIMLight> _Light)
+{
+	LightAccPointShader->SetShader();
+
+	_Light->SetShader();
+
+	GetAIMContext->IASetInputLayout(LightPointLayout);
+
+	CullNone->SetState();
+
+	LightPointVolume->Render();
+
+	CullNone->ResetState();
+
+	// 전체 화면크기의 사각형 출력
+	/*GetAIMContext->IASetInputLayout(nullptr);
+
+	UINT Offset = 0;
+	GetAIMContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	GetAIMContext->IASetVertexBuffers(0, 0, nullptr, 0, &Offset);
+	GetAIMContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	GetAIMContext->Draw(4, 0);*/
+}
+
+void RenderManager::RenderLightSpot(float _Time, Ezptr<AIMLight> _Light)
+{
+	LightAccSpotShader->SetShader();
+
+	_Light->SetShader();
+
+	// 전체 화면크기의 사각형 출력
+	GetAIMContext->IASetInputLayout(nullptr);
+
+	UINT Offset = 0;
+	GetAIMContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	GetAIMContext->IASetVertexBuffers(0, 0, nullptr, 0, &Offset);
+	GetAIMContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	GetAIMContext->Draw(4, 0);
+}
+
+void RenderManager::RenderLightBlend(float _Time)
+{
+	Ezptr<RenderTarget> LightBlendTarget = FindRenderTarget("LightBlend");
+
+	LightBlendTarget->ClearTarget();
+
+	LightBlendTarget->SetTarget();
+
+	LightBlendShader->SetShader();
+	
+	DepthDisable->SetState();
+
+	Ezptr<MultiRenderTarget> LightAcc = FindMultiRenderTarget("LightAcc");
+	Ezptr<RenderTarget> Albedo = FindRenderTarget("Albedo");
+
+	Albedo->SetShader(10);
+	LightAcc->RenderTargetVec[0]->SetShader(17);
+	LightAcc->RenderTargetVec[1]->SetShader(18);
+
+	GetAIMContext->IASetInputLayout(nullptr);
+
+	UINT Offset = 0;
+	GetAIMContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	GetAIMContext->IASetVertexBuffers(0, 0, nullptr, 0, &Offset);
+	GetAIMContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	GetAIMContext->Draw(4, 0);
+
+	Albedo->ResetShader(10);
+	LightAcc->RenderTargetVec[0]->ResetShader(17);
+	LightAcc->RenderTargetVec[1]->ResetShader(18);
+
+	DepthDisable->ResetState();
+
+	LightBlendTarget->ResetTarget();
+}
+
+void RenderManager::RenderLightBlendRender(float _Time)
+{
+	LightBlendRenderShader->SetShader();
+
+	DepthDisable->SetState();
+	AlphaBlend->SetState();
+
+	Ezptr<RenderTarget> LightBlend = FindRenderTarget("LightBlend");
+
+	LightBlend->SetShader(0);
+
+	GetAIMContext->IASetInputLayout(nullptr);
+
+	UINT Offset = 0;
+	GetAIMContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	GetAIMContext->IASetVertexBuffers(0, 0, nullptr, 0, &Offset);
+	GetAIMContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	GetAIMContext->Draw(4, 0);
+
+	LightBlend->ResetShader(0);
+
+	AlphaBlend->ResetState();
+	DepthDisable->ResetState();
 }

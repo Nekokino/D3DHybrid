@@ -6,6 +6,7 @@ enum ShaderType
 {
 	ST_VTX,
 	ST_PIX,
+	ST_GEO,
 	ST_END,
 };
 
@@ -16,9 +17,11 @@ enum ComType
 	CT_USERCOM,
 	CT_CAMERA,
 	CT_MATERIAL,
+	CT_COLLIDER,
 	CT_LIGHT,
 	CT_UI,
 	CT_LANDSCAPE,
+	CT_ANIMATION,
 	CT_END,
 };
 
@@ -98,4 +101,35 @@ enum RenderMode
 {
 	RM_FORWARD,
 	RM_DEFERRED,
+};
+
+enum AnimationOption
+{
+	AO_LOOP,
+	AO_ONCE_DESTROY,
+};
+
+enum ColliderType
+{
+	CT_SPHERE,
+	CT_CAPSULE,
+	CT_OBB,
+	CT_POINT,
+	CT_RAY,
+	CT_AABB,
+};
+
+enum CollisionChannelState
+{
+	CCS_IGNORE,
+	CCS_OVERLAP,
+	CCS_BLOCK,
+};
+
+enum CollisionCallbackState
+{
+	CCS_BEGIN,
+	CCS_STAY,
+	CCS_LEAVE,
+	CCS_END,
 };

@@ -1,8 +1,14 @@
 #pragma once
 
 #include "UserComponent.h"
+#include <AIMCollider.h>
+#include <AIMAnimation.h>
+
 class Player : public UserComponent
 {
+private:
+	Ezptr<AIMAnimation> Animation;
+
 public:
 	virtual void Start();
 	virtual bool Init();
@@ -18,6 +24,11 @@ public:
 	void MoveFront(float _Scale, float _Time);
 	void Fire(float _Time);
 	void Test(float _Time);
+
+private:
+	void Hit(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+	void HitStay(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+	void HitLeave(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
 
 public:
 	Player();

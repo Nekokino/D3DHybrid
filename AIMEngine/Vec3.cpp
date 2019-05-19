@@ -647,6 +647,11 @@ void _tagVec3::operator/=(const _tagVec3 & _Other)
 	t1 = DirectX::XMLoadFloat3((DirectX::XMFLOAT3*)this);
 	t2 = _Other.Convert();
 
+	if (_Other.x == 0.0f || _Other.y == 0.0f || _Other.z == 0.0f)
+	{
+		return;
+	}
+
 	t1 /= t2;
 
 	Convert(t1);

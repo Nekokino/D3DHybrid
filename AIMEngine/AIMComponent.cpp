@@ -1,10 +1,11 @@
 #include "AIMComponent.h"
-
+#include "AIMObject.h"
+#include "AIMTransform.h"
 AIMComponent::AIMComponent()
 {
 }
 
-AIMComponent::AIMComponent(const AIMComponent & _Other) : Scene(_Other.Scene), Layer(_Other.Layer), Object(_Other.Object), Transform(_Other.Transform), CT(_Other.CT)
+AIMComponent::AIMComponent(const AIMComponent & _Other) : Scene(_Other.Scene), Layer(_Other.Layer), Object(_Other.Object), Transform(_Other.Transform), CT(_Other.CT), RefCounter(_Other)
 {
 
 }
@@ -31,6 +32,16 @@ AIMObject * AIMComponent::GetAIMObject() const
 AIMTransform * AIMComponent::GetTransform() const
 {
 	return Transform;
+}
+
+bool AIMComponent::IsObjectEnable()
+{
+	return Object->IsEnable();
+}
+
+bool AIMComponent::IsObjectAlive()
+{
+	return Object->IsAlive();
 }
 
 void AIMComponent::SetScene(AIMScene * _Scene)
@@ -95,4 +106,19 @@ int AIMComponent::Render(float _Time)
 AIMComponent* AIMComponent::Clone() const
 {
 	return new AIMComponent(*this);
+}
+
+void AIMComponent::EraseComponent(const std::string & _Name)
+{
+	Object->EraseComponent(_Name);
+}
+
+void AIMComponent::EraseComponent(ComType _Type)
+{
+	Object->EraseComponent(_Type);
+}
+
+void AIMComponent::EraseComponent(Ezptr<AIMComponent> _Com)
+{
+	Object->EraseComponent(_Com);
 }

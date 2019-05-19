@@ -27,6 +27,7 @@ typedef union Engine_DLL __declspec(align(16)) _tagMatrix
 
 	void operator= (const _tagMatrix& _Other);
 	void operator= (const DirectX::XMMATRIX& _m);
+	void operator= (float _f[4][4]);
 
 	Vec4& operator[] (unsigned int _Idx);
 

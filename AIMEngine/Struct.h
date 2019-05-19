@@ -64,8 +64,10 @@ typedef struct Engine_DLL _tagTransformConstBuffer
 	Matrix World;
 	Matrix View;
 	Matrix Projection;
+	Matrix InvProjection;
 	Matrix WV;
 	Matrix WVP;
+	Matrix VP;
 }TransformConstBuffer, *PTransformConstBuffer;
 
 typedef struct Engine_DLL _tagMaterial
@@ -74,8 +76,12 @@ typedef struct Engine_DLL _tagMaterial
 	Vec4 Ambient;
 	Vec4 Specular;
 	Vec4 Emissive;
+	int IsNormal;
+	int IsSpecular;
+	int Skinning;
+	float Dump;
 
-	_tagMaterial() : Diffuse(Vec4::White), Ambient(Vec4::White), Specular(Vec4::White), Emissive(Vec4::White)
+	_tagMaterial() : Diffuse(Vec4::White), Ambient(Vec4::White), Specular(Vec4::White), Emissive(Vec4::White), IsNormal(0), IsSpecular(0), Skinning(0)
 	{
 	}
 }Material, *PMaterial;
@@ -84,12 +90,25 @@ typedef struct Engine_DLL _tagVertex3D
 {
 	Vec3 Pos;
 	Vec3 Normal;
-	Vec3 UV;
+	Vec2 UV;
 	Vec3 Tangent;
 	Vec3 Binormal;
-	Vec3 BlendWeights;
-	Vec3 BlendIndices;
+	Vec4 BlendWeights;
+	Vec4 BlendIndices;
 }Vertex3D, *PVertex3D;
+
+typedef struct Engine_DLL _tagVertexDefaultParticle
+{
+	Vec3 Pos;
+	Vec2 Size;
+
+	_tagVertexDefaultParticle() {}
+	_tagVertexDefaultParticle(const _tagVertexDefaultParticle& _Other)
+	{
+		*this = _Other;
+	}
+	_tagVertexDefaultParticle(const Vec3& _Pos, const Vec2& _Size) : Pos(_Pos), Size(_Size) {}
+}VertexDefualtParticle, *PVertexDefaultParticle;
 
 typedef struct Engine_DLL _tagLightInfo
 {
@@ -117,3 +136,43 @@ typedef struct Engine_DLL _tagDebugConstBuffer
 {
 	Matrix WVP;
 }DebugConstBuffer, *PDebugConstBuffer;
+
+typedef struct Engine_DLL _tagParticleConstBuffer
+{
+	Vec3 Pos;
+	float SizeX;
+	Vec3 AxisX;
+	float SizeY;
+	Vec3 AxisY;
+	float Dummy;
+}ParticleConstBuffer, *PParticleConstBuffer;
+
+typedef struct Engine_DLL _tagSphereInfo
+{
+	Vec3 Center;
+	float Radius;
+
+	_tagSphereInfo() : Radius(0.0f) {}
+}SphereInfo, *PSphereInfo;
+
+typedef struct Engine_DLL _tagAABBInfo
+{
+	Vec3 Min;
+	Vec3 Max;
+}AABBInfo, *PAABBInfo;
+
+typedef struct Engine_DLL _tagOBBInfo
+{
+	Vec3 Center;
+	Vec3 Axis[AXIS_END];
+	Vec3 HalfLength;
+
+	_tagOBBInfo()
+	{
+		for (int i = 0; i < AXIS_END; i++)
+		{
+			Axis[i] = Vec3::Axis[i];
+			HalfLength = 1.0f;
+		}
+	}
+}OBBInfo, *POBBInfo;

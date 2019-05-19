@@ -34,7 +34,7 @@ struct VS_In_UV
 
 struct VS_Out_UV
 {
-    float4 Pos : POSITION;
+    float4 Pos : SV_POSITION;
     float2 UV : TEXCOORD;
 };
 
@@ -54,7 +54,7 @@ struct VS_Out_ColorNormal
     float4 ProjPos : POSITION1;
 };
 
-struct VS_3D_In
+struct VS_In_3D
 {
     float3 Pos : POSITION;
     float3 Normal : NORMAL;
@@ -65,9 +65,25 @@ struct VS_3D_In
     float4 Indices : BLENDINDICES;
 };
 
-struct VS_Pos_In
+struct VS_Out_3D
+{
+    float4 Pos : SV_POSITION;
+    float3 Normal : NORMAL;
+    float2 UV : TEXCOORD;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
+    float3 ViewPos : POSITION;
+    float4 ProjPos : POSITION1;
+};
+
+struct VS_In_Pos
 {
     float3 Pos : POSITION;
+};
+
+struct VS_Out_Pos
+{
+    float4 Pos : SV_POSITION;
 };
 
 struct VS_Out_Sky
@@ -84,8 +100,10 @@ cbuffer Transform : register(b0)
     matrix World;
     matrix View;
     matrix Projection;
+    matrix InvProjection;
     matrix WV;
     matrix WVP;
+    matrix VP;
 }
 
 cbuffer Material : register(b1)
@@ -94,6 +112,10 @@ cbuffer Material : register(b1)
     float4 MtrlAmb;
     float4 MtrlSpc;
     float4 MtrlEmv;
+    int MtrlNormal;
+    int MtrlSpecular;
+    int MtrlSkinning;
+    float MtrlDummy;
 }
 
 cbuffer Light : register(b2)
@@ -117,13 +139,19 @@ cbuffer Render : register(b3)
 }
 
 Texture2D DiffuseTex : register(t0);
-SamplerState DiffuseSmp : register(s0);
+Texture2D NormalTex : register(t1);
+Texture2D SpecularTex : register(t2);
+Texture2D BoneTex : register(t3);
+
+SamplerState LinearSmp : register(s0);
+SamplerState PointSmp : register(s1);
 
 struct LightInfo
 {
     float4 Dif;
     float4 Amb;
     float4 Spc;
+    float4 Emv;
 };
 
 #define LIGHT_DIR 0
@@ -137,18 +165,18 @@ LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
 {
     LightInfo Info = (LightInfo) 0;
 
-    float3 LightDir = (float3) 0.0f;
+    float3 tLightDir = (float3) 0.0f;
     float Intensity = 1.0f;
 
     if (LightType == LIGHT_DIR)
     {
-        LightDir = -normalize(mul(float4(LightDir, 0.0f), View).xyz);
+        tLightDir = LightDir;
     }
 
     if (LightType == LIGHT_POINT)
     {
-        LightDir = LightPos - _ViewPos;
-        LightDir = normalize(LightDir);
+        tLightDir = LightPos - _ViewPos;
+        tLightDir = normalize(tLightDir);
 
         float Dist = distance(LightPos, _ViewPos);
 
@@ -164,8 +192,8 @@ LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
 
     if (LightType == LIGHT_SPOT)
     {
-        LightDir = LightPos - _ViewPos;
-        LightDir = normalize(LightDir);
+        tLightDir = LightPos - _ViewPos;
+        tLightDir = normalize(tLightDir);
 
         float Dist = distance(LightPos, _ViewPos);
 
@@ -175,9 +203,9 @@ LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
         }
         else
         {
-            float3 Dir = -LightDir;
+            float3 Dir = -tLightDir;
 
-            float Dot = dot(Dir, -LightDir);
+            float Dot = dot(Dir, LightDir);
 
             if (Dot < LightOutAngle)
             {
@@ -202,10 +230,10 @@ LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
 
     }
 
-    Info.Dif = LightDif * MtrlDif * max(0, dot(_ViewNormal, LightDir)) * Intensity;
+    Info.Dif = LightDif * MtrlDif * max(0, dot(_ViewNormal, tLightDir)) * Intensity;
     Info.Amb = LightAmb * MtrlAmb;
 
-    float3 R = 2.0f * dot(_ViewNormal, LightDir) * _ViewNormal - LightDir;
+    float3 R = 2.0f * dot(_ViewNormal, tLightDir) * _ViewNormal - tLightDir;
     R = normalize(R);
 
     float3 View = -normalize(_ViewPos);
@@ -213,4 +241,160 @@ LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
     Info.Spc = LightSpc * MtrlSpc * pow(max(0, dot(R, View)), MtrlSpc.w) * Intensity;
 
     return Info;
+}
+
+LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal, float4 _Diffuse, float4 _Ambient, float4 _Specular, float4 _Emissive, float _SpecularPower)
+{
+    LightInfo Info = (LightInfo) 0;
+
+    float3 tLightDir = (float3) 0.0f;
+    float Intensity = 1.0f;
+
+    if (LightType == LIGHT_DIR)
+    {
+        tLightDir = LightDir;
+    }
+
+    if (LightType == LIGHT_POINT)
+    {
+        tLightDir = LightPos - _ViewPos;
+        tLightDir = normalize(tLightDir);
+
+        float Dist = distance(LightPos, _ViewPos);
+
+        if (Dist > LightDist)
+        {
+            Intensity = 0.0f;
+        }
+        else
+        {
+            Intensity = (1.0f - Dist / LightDist) * 0.7f + 0.3f;
+        }
+    }
+
+    if (LightType == LIGHT_SPOT)
+    {
+        tLightDir = LightPos - _ViewPos;
+        tLightDir = normalize(tLightDir);
+
+        float Dist = distance(LightPos, _ViewPos);
+
+        if (Dist > LightDist)
+        {
+            Intensity = 0.0f;
+        }
+        else
+        {
+            float3 Dir = -tLightDir;
+
+            float Dot = dot(Dir, LightDir);
+
+            if (Dot < LightOutAngle)
+            {
+                Intensity = 0.0f;
+            }
+            else if (Dot >= LightInAngle)
+            {
+                Intensity = 1.0f;
+            }
+            else
+            {
+                Intensity = (LightInAngle - Dot) / (LightInAngle - LightOutAngle);
+            }
+
+            Intensity = Intensity * 0.3f + 0.7f;
+            float DistIntensity = (1.0f - Dist / LightDist) * 0.3f + 0.7f;
+
+            Intensity *= DistIntensity;
+
+        }
+
+    }
+
+    Info.Dif = LightDif * _Diffuse * max(0.0f, dot(_ViewNormal, tLightDir)) * Intensity;
+    Info.Amb = LightAmb * _Ambient;
+
+    float3 Reflection = 2.0f * dot(_ViewNormal, tLightDir) * _ViewNormal - tLightDir;
+    Reflection = normalize(Reflection);
+
+    float3 View = -normalize(_ViewPos);
+
+    Info.Spc = LightSpc * _Specular * pow(max(0, dot(Reflection, View)), _SpecularPower) * Intensity;
+
+    Info.Emv = _Specular * _Emissive;
+
+    return Info;
+
+}
+
+struct _tagSkinning
+{
+    float3 Pos;
+    float3 Normal;
+    float3 Tangent;
+    float3 Binormal;
+};
+
+matrix GetBoneMatrix(int _Idx)
+{
+    matrix BoneMat =
+    {
+        BoneTex.Load(int3(_Idx * 4, 0, 0)),
+        BoneTex.Load(int3(_Idx * 4 + 1, 0, 0)),
+        BoneTex.Load(int3(_Idx * 4 + 2, 0, 0)),
+        BoneTex.Load(int3(_Idx * 4 + 3, 0, 0))
+    };
+
+    return BoneMat;
+}
+
+_tagSkinning Skinning(float3 _Pos, float3 _Normal, float3 _Tangent, float3 _Binormal, float4 _Weights, float4 _Indices)
+{
+    _tagSkinning Tmp = (_tagSkinning) 0.0f;
+
+    float Weights[4];
+    Weights[0] = _Weights.x;
+    Weights[1] = _Weights.y;
+    Weights[2] = _Weights.z;
+    Weights[3] = 1.0f - _Weights.x - _Weights.y - _Weights.z;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        matrix BoneMat = GetBoneMatrix((int) _Indices[i]);
+
+        Tmp.Pos += Weights[i] * mul(float4(_Pos, 1.0f), BoneMat).xyz;
+        Tmp.Normal += Weights[i] * mul(float4(_Normal, 0.0f), BoneMat).xyz;
+        Tmp.Tangent += Weights[i] * mul(float4(_Tangent, 0.0f), BoneMat).xyz;
+        Tmp.Binormal += Weights[i] * mul(float4(_Binormal, 0.0f), BoneMat).xyz;
+    }
+
+    Tmp.Normal = normalize(Tmp.Normal);
+    Tmp.Tangent = normalize(Tmp.Tangent);
+    Tmp.Binormal = normalize(Tmp.Binormal);
+
+    return Tmp;
+}
+
+_tagSkinning Skinning(float3 _Pos, float3 _Normal, float4 _Weights, float4 _Indices)
+{
+    _tagSkinning Tmp = (_tagSkinning) 0.0f;
+
+    float Weights[4];
+    Weights[0] = _Weights.x;
+    Weights[1] = _Weights.y;
+    Weights[2] = _Weights.z;
+    Weights[3] = 1.0f - _Weights.x - _Weights.y - _Weights.z;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        matrix BoneMat = GetBoneMatrix((int) _Indices[i]);
+
+        Tmp.Pos += Weights[i] * mul(float4(_Pos, 1.0f), BoneMat).xyz;
+        Tmp.Normal += Weights[i] * mul(float4(_Normal, 0.0f), BoneMat).xyz;
+    }
+
+    Tmp.Normal = normalize(Tmp.Normal);
+
+    return Tmp;
+
 }

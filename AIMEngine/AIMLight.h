@@ -12,6 +12,12 @@ private:
 	float OutAngle;
 
 public:
+	LightInfo GetLightInfo() const
+	{
+		return Info;
+	}
+
+public:
 	void SetLightType(LightType _Type)
 	{
 		Info.Type = _Type;

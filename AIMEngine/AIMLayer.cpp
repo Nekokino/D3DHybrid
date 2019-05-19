@@ -11,6 +11,7 @@ AIMLayer::AIMLayer()
 AIMLayer::~AIMLayer()
 {
 	ObjList.clear();
+	StartList.clear();
 }
 
 int AIMLayer::GetOrder() const
@@ -23,6 +24,24 @@ void AIMLayer::SetOrder(int _Order)
 	Order = _Order;
 
 	Scene->SortLayer();
+}
+
+void AIMLayer::Start()
+{
+	if (StartList.empty() == true)
+	{
+		return;
+	}
+
+	std::list<Ezptr<AIMObject>>::iterator StartIter = StartList.begin();
+	std::list<Ezptr<AIMObject>>::iterator EndIter = StartList.end();
+
+	for (; StartIter != EndIter ; ++StartIter)
+	{
+		(*StartIter)->Start();
+	}
+
+	StartList.clear();
 }
 
 bool AIMLayer::Init()
@@ -58,6 +77,8 @@ int AIMLayer::Input(float _Time)
 
 int AIMLayer::Update(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMObject>>::iterator StartIter = ObjList.begin();
 	std::list<Ezptr<AIMObject>>::iterator EndIter = ObjList.end();
 
@@ -84,6 +105,8 @@ int AIMLayer::Update(float _Time)
 
 int AIMLayer::LateUpdate(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMObject>>::iterator StartIter = ObjList.begin();
 	std::list<Ezptr<AIMObject>>::iterator EndIter = ObjList.end();
 
@@ -110,6 +133,8 @@ int AIMLayer::LateUpdate(float _Time)
 
 int AIMLayer::Collision(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMObject>>::iterator StartIter = ObjList.begin();
 	std::list<Ezptr<AIMObject>>::iterator EndIter = ObjList.end();
 
@@ -136,6 +161,8 @@ int AIMLayer::Collision(float _Time)
 
 int AIMLayer::Render(float _Time)
 {
+	Start();
+
 	std::list<Ezptr<AIMObject>>::iterator StartIter = ObjList.begin();
 	std::list<Ezptr<AIMObject>>::iterator EndIter = ObjList.end();
 
@@ -187,5 +214,7 @@ void AIMLayer::AddObject(Ezptr<AIMObject> _Obj)
 
 	_Obj->Start();
 
+	StartList.push_back(_Obj);
 	ObjList.push_back(_Obj);
+	
 }

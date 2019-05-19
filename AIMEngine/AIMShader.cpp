@@ -2,7 +2,7 @@
 #include "PathManager.h"
 #include "AIMDevice.h"
 
-AIMShader::AIMShader() : VS(nullptr), VSBlob(nullptr), PS(nullptr), PSBlob(nullptr)
+AIMShader::AIMShader()
 {
 }
 
@@ -31,6 +31,18 @@ AIMShader::~AIMShader()
 	{
 		PSBlob->Release();
 		PSBlob = nullptr;
+	}
+
+	if (nullptr != GS)
+	{
+		GS->Release();
+		GS = nullptr;
+	}
+
+	if (nullptr != GSBlob)
+	{
+		GSBlob->Release();
+		GSBlob = nullptr;
 	}
 }
 
@@ -72,16 +84,24 @@ bool AIMShader::LoadShader(const std::string & _Name, const TCHAR * _FileName, s
 		return false;
 	}
 
+	if (_Entry[ST_GEO].empty() == false)
+	{
+		if (false == LoadGeometryShader(Path, _Entry[ST_GEO].c_str()))
+		{
+			tassertmsg(true, "GeometryShader Load Failed");
+			return false;
+		}
+	}
+	
+
 	return true;
 }
 
 void AIMShader::SetShader()
 {
 	GetAIMContext->VSSetShader(VS, nullptr, 0);
-	if (nullptr != PS)
-	{
-		GetAIMContext->PSSetShader(PS, nullptr, 0);
-	}
+	GetAIMContext->PSSetShader(PS, nullptr, 0);
+	GetAIMContext->GSSetShader(GS, nullptr, 0);
 }
 
 bool AIMShader::LoadVertexShader(const TCHAR * _FullPath, const char * _Entry)
@@ -130,6 +150,32 @@ bool AIMShader::LoadPixelShader(const TCHAR * _FullPath, const char * _Entry)
 	if (FAILED(GetAIMDevice->CreatePixelShader(PSBlob->GetBufferPointer(), PSBlob->GetBufferSize(), nullptr, &PS)))
 	{
 		tassertmsg(true, "Create Pixel Shader Error");
+		return false;
+	}
+
+	return true;
+}
+
+bool AIMShader::LoadGeometryShader(const TCHAR * _FullPath, const char * _Entry)
+{
+	UINT Flag = 0;
+
+#ifdef _DEBUG
+	Flag = D3DCOMPILE_DEBUG;
+#endif
+
+	ID3DBlob* Err = nullptr;
+
+	if (FAILED(D3DCompileFromFile(_FullPath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, _Entry, "gs_5_0", Flag, 0, &GSBlob, &Err)))
+	{
+		OutputDebugStringA((char*)Err->GetBufferPointer());
+		tassertmsg(true, "Geometry Shader Compile Error");
+		return false;
+	}
+
+	if (FAILED(GetAIMDevice->CreateGeometryShader(GSBlob->GetBufferPointer(), GSBlob->GetBufferSize(), nullptr, &GS)))
+	{
+		tassertmsg(true, "Create Geometry Shader Error");
 		return false;
 	}
 

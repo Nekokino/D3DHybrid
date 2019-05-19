@@ -22,6 +22,9 @@ public:
 	AIMObject* GetAIMObject() const;
 	AIMTransform* GetTransform() const;
 
+	bool IsObjectEnable();
+	bool IsObjectAlive();
+
 public:
 	void SetScene(AIMScene* _Scene);
 	void SetLayer(AIMLayer* _Layer);
@@ -43,6 +46,11 @@ public:
 	virtual int PrevRender(float _Time);
 	virtual int Render(float _Time);
 	virtual AIMComponent* Clone() const;
+
+public:
+	void EraseComponent(const std::string& _Name);
+	void EraseComponent(ComType _Type);
+	void EraseComponent(Ezptr<AIMComponent> _Com);
 
 public:
 	template<typename T>

@@ -4,5 +4,8 @@
     <FxCompile Include="..\Bin\Shader\ShaderStruct.fx" />
     <FxCompile Include="..\Bin\Shader\Standard.fx" />
     <FxCompile Include="..\Bin\Shader\Debug.fx" />
+    <FxCompile Include="..\Bin\Shader\Light.fx" />
+    <FxCompile Include="..\Bin\Shader\Collider.fx" />
+    <FxCompile Include="..\Bin\Shader\Particle.fx" />
   </ItemGroup>
 </Project>

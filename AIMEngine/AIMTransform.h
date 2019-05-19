@@ -139,6 +139,11 @@ public:
 	void SetParentMatrix(const Matrix& _Parent);
 
 public:
+	Matrix GetWorldRotationMatrix() const
+	{
+		return WorldRotationMat;
+	}
+
 	Matrix GetWorldMatrix() const
 	{
 		return WorldMat;

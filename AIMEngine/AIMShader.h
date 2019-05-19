@@ -7,10 +7,12 @@ public:
 	friend class ShaderManager;
 
 private:
-	ID3D11VertexShader* VS;
-	ID3DBlob* VSBlob;
-	ID3D11PixelShader* PS;
-	ID3DBlob* PSBlob;
+	ID3D11VertexShader* VS = nullptr;
+	ID3DBlob* VSBlob = nullptr;
+	ID3D11GeometryShader* GS = nullptr;
+	ID3DBlob* GSBlob = nullptr;
+	ID3D11PixelShader* PS = nullptr;
+	ID3DBlob* PSBlob = nullptr;
 
 public:
 	const void* GetVSCode() const;
@@ -23,6 +25,7 @@ public:
 private:
 	bool LoadVertexShader(const TCHAR* _FullPath, const char* _Entry);
 	bool LoadPixelShader(const TCHAR* _FullPath, const char* _Entry);
+	bool LoadGeometryShader(const TCHAR* _FullPath, const char* _Entry);
 
 private:
 	AIMShader();

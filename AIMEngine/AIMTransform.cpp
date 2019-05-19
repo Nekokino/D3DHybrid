@@ -299,16 +299,21 @@ int AIMTransform::PrevRender(float _Time)
 		ConstBuffer.World = LocalMat * WorldMat;
 		ConstBuffer.View = Cam->GetView();
 		ConstBuffer.Projection = Cam->GetProjection();
+		ConstBuffer.InvProjection = ConstBuffer.Projection;
+		ConstBuffer.InvProjection.Inverse();
 		ConstBuffer.WV = ConstBuffer.World * ConstBuffer.View;
 		ConstBuffer.WVP = ConstBuffer.WV * ConstBuffer.Projection;
+		ConstBuffer.VP = ConstBuffer.View * ConstBuffer.Projection;
 
 		ConstBuffer.WorldRotation.Transpose();
 		ConstBuffer.WVRotation.Transpose();
 		ConstBuffer.World.Transpose();
 		ConstBuffer.View.Transpose();
 		ConstBuffer.Projection.Transpose();
+		ConstBuffer.InvProjection.Transpose();
 		ConstBuffer.WV.Transpose();
 		ConstBuffer.WVP.Transpose();
+		ConstBuffer.VP.Transpose();
 
 		bUpdate = false;
 	}

@@ -3,6 +3,7 @@
 #include "RefCounter.h"
 #include "AIMComponent.h"
 #include "AIMTransform.h"
+#include "AIMCollider.h"
 #include "AIMScene.h"
 
 class AIMLayer;
@@ -25,18 +26,29 @@ private:
 	AIMScene* Scene = nullptr;
 	AIMLayer* Layer = nullptr;
 	Ezptr<AIMTransform> Transform = nullptr;
+	RenderGroup RG = RG_DEFAULT;
 
 public:
 	AIMScene* GetScene() const;
 	AIMLayer* GetLayer() const;
 	Ezptr<AIMTransform> GetTransform() const;
+	RenderGroup GetRenderGroup() const
+	{
+		return RG;
+	}
 
 public:
 	void SetScene(AIMScene* _Scene);
 	void SetLayer(AIMLayer* _Layer);
+	void SetRenderGroup(RenderGroup _RG);
 
 private:
 	std::list<Ezptr<AIMComponent>> ComList;
+	std::list<Ezptr<AIMComponent>> StartList;
+	std::list<Ezptr<AIMCollider>> ColliderList;
+
+public:
+	const std::list<Ezptr<AIMCollider>>* GetColliderList() const;
 
 public:
 	void Start();
@@ -53,6 +65,10 @@ public:
 	bool CheckComponent(const std::string& _Name);
 	bool CheckComponent(ComType _Type);
 
+	void EraseComponent(const std::string& _Name);
+	void EraseComponent(ComType _Type);
+	void EraseComponent(Ezptr<AIMComponent> _Com);
+
 public:
 	AIMComponent* AddComponent(Ezptr<AIMComponent> _Com);
 
@@ -65,6 +81,7 @@ public:
 		Com->SetScene(Scene);
 		Com->SetLayer(Layer);
 		Com->SetAIMObject(this);
+		Com->Transform = Transform;
 
 		if (Com->Init() == false)
 		{
