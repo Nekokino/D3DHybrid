@@ -124,6 +124,30 @@ typedef struct Engine_DLL _tagColliderList
 			List = nullptr;
 		}
 	}
+
+	void Add(AIMCollider* _Collider)
+	{
+		if (Size == Capacity)
+		{
+			Capacity *= 2;
+
+			AIMCollider** NewList = new AIMCollider*[Capacity];
+			memset(NewList, 0, sizeof(AIMCollider*) * Capacity);
+			memcpy(NewList, List, sizeof(AIMCollider*) * Size);
+
+			delete[] List;
+			List = NewList;
+		}
+
+		List[Size] = _Collider;
+		++Size;
+	}
+
+	void Clear()
+	{
+		Size = 0;
+	}
+
 }ColliderList, *PColliderList;
 
 // 충돌체의 레이어
@@ -221,8 +245,13 @@ private:
 
 private:
 	static CollisionSection* Section;
+	static CollisionSection* PickSection;
+	static CollisionSection* UISection;
+	static ColliderList* MouseCollisionList;
 	static Vec3 Pos;
 	static Vec3 Pivot;
+	static Ezptr<AIMCollider> PrevMousePick;
+	static Ezptr<AIMCollider> PrevMouseCollider;
 
 private:
 	static CollisionProfile* ProfileList;
@@ -259,6 +288,16 @@ public:
 	static Ezptr<AIMCollider> FindCollider(unsigned int _SerialNumber);
 	static void DeleteCollider(unsigned int _SerialNumber);
 	static void ComputeSection();
+
+private:
+	static bool CollisionMouseUI(float _Time);
+	static bool CollisionMouseWorld(float _Time);
+	static bool CollisionUI(float _Time);
+	static bool CollisionWorld(float _Time);
+	static bool Collision(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest);
+
+public:
+	static int SortZ(const void* _Src, const void* _Dest);
 
 private:
 	CollisionManager() {}

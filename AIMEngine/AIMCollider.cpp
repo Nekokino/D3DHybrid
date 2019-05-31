@@ -39,7 +39,6 @@ AIMCollider::AIMCollider(const AIMCollider & _Other) : AIMComponent(_Other)
 #endif
 
 	ColType = _Other.ColType;
-	SerialNumber = _Other.SerialNumber;
 	_Other.SectionMin;
 	_Other.SectionMax;
 	Profile = _Other.Profile;
@@ -53,7 +52,9 @@ AIMCollider::AIMCollider(const AIMCollider & _Other) : AIMComponent(_Other)
 
 	memcpy(Callback, _Other.Callback, sizeof(std::function<void(Ezptr<AIMCollider>, Ezptr<AIMCollider>, float)>) * CCS_END);
 	memcpy(bCallback, _Other.bCallback, sizeof(bool) * CCS_END);
-	
+
+	Pick = _Other.Pick;
+	AddCollisionManager = _Other.AddCollisionManager;
 }
 
 
@@ -93,7 +94,10 @@ void AIMCollider::Start()
 {
 	SerialNumber = CollisionManager::GetSerialNumber();
 
-	CollisionManager::AddCollider(this);
+	if (AddCollisionManager == true)
+	{
+		CollisionManager::AddCollider(this);
+	}
 
 	PrevSize = 0;
 	PrevCapacity = 10;
@@ -167,6 +171,16 @@ int AIMCollider::Render(float _Time)
 AIMCollider * AIMCollider::Clone() const
 {
 	return nullptr;
+}
+
+void AIMCollider::PickEnable()
+{
+	Pick = true;
+}
+
+void AIMCollider::EnableCollisionManager(bool _Value)
+{
+	AddCollisionManager = _Value;
 }
 
 void AIMCollider::ClearState()
@@ -290,6 +304,11 @@ bool AIMCollider::CheckCollisionList(unsigned int _SerialNumber)
 	}
 
 	return false;
+}
+
+bool AIMCollider::CheckCollisionList()
+{
+	return CollisionSize != 0;
 }
 
 void AIMCollider::Call(CollisionCallbackState _State, Ezptr<AIMCollider> _Dest, float _Time)
@@ -477,6 +496,35 @@ bool AIMCollider::CollisionOBB2OBB(const OBBInfo & _Src, const OBBInfo & _Dest)
 
 	if (r > r1 + r2)
 		return false;
+
+	return true;
+}
+
+bool AIMCollider::CollisionSp2Ray(const SphereInfo & _Src, const RayInfo & _Dest)
+{
+	Vec3 M = _Dest.Origin - _Src.Center;
+
+	float b = 2.0f * M.Dot(_Dest.Dir);
+	float c = M.Dot(M) - _Src.Radius * _Src.Radius;
+
+	float Det = b * b - 4.0f * c;
+
+	if (Det < 0)
+	{
+		return false;
+	}
+
+	Det = sqrtf(Det);
+
+	float t0, t1;
+
+	t0 = (-b + Det) / 2.0f;
+	t1 = (-b - Det) / 2.0f;
+
+	if (t0 < 0 && t1 < 0)
+	{
+		return false;
+	}
 
 	return true;
 }

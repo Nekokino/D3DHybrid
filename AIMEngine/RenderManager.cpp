@@ -9,6 +9,11 @@
 #include "AIMShader.h"
 #include "AIMMesh.h"
 #include "CollisionManager.h"
+#include "AIMMaterial.h"
+#include "AIMRenderer.h"
+#include "AIMTransform.h"
+#include "AIMCamera.h"
+#include "AIMScene.h"
 
 std::unordered_map<std::string, Ezptr<RenderState>> RenderManager::RenderStateMap;
 std::unordered_map<std::string, Ezptr<RenderTarget>> RenderManager::RenderTargetMap;
@@ -29,6 +34,100 @@ Ezptr<AIMShader> RenderManager::LightAccSpotShader;
 Ezptr<AIMMesh> RenderManager::LightPointVolume;
 ID3D11InputLayout* RenderManager::LightPointLayout = nullptr;
 
+std::unordered_map<unsigned __int64, InstancingGeometry*> RenderManager::InstancingGeometryMap;
+std::list<InstancingGeometry*> RenderManager::InstancingList[RG_END];
+InstancingBuffer* RenderManager::StaticInstancing = nullptr;
+InstancingBuffer* RenderManager::FrameAnimInstancing = nullptr;
+InstancingBuffer* RenderManager::AnimInstancing = nullptr;
+InstancingBuffer* RenderManager::ColliderInstancing = nullptr;
+InstancingBuffer* RenderManager::LightInstancing = nullptr;
+
+Ezptr<AIMShader> RenderManager::StaticInstancingShader;
+Ezptr<AIMShader> RenderManager::FrameAnimInstancingShader;
+Ezptr<AIMShader> RenderManager::AnimInstancingShader;
+
+ID3D11InputLayout* RenderManager::StaticInstancingLayout = nullptr;
+ID3D11InputLayout* RenderManager::FrameAnimInstancingLayout = nullptr;
+ID3D11InputLayout* RenderManager::AnimInstancingLayout = nullptr;
+
+
+InstancingGeometry * RenderManager::FindInstancingGeometry(unsigned __int64 _Key)
+{
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator FindIter = InstancingGeometryMap.find(_Key);
+
+	if (FindIter == InstancingGeometryMap.end())
+	{
+		return nullptr;
+	}
+	return FindIter->second;
+}
+
+InstancingBuffer* RenderManager::CreateInstancingBuffer(int _Size, int _Count)
+{
+	InstancingBuffer* Buffer = new InstancingBuffer;
+
+	Buffer->Size = _Size;
+	Buffer->Count = _Count;
+	Buffer->Usage = D3D11_USAGE_DYNAMIC;
+	Buffer->Data = new char[_Size * _Count];
+	
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = _Size * _Count;
+	Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	if (FAILED(GetAIMDevice->CreateBuffer(&Desc, nullptr, &Buffer->Buffer)))
+	{
+		return nullptr;
+	}
+
+	return Buffer;
+}
+
+void RenderManager::ResizeInstancingBuffer(InstancingBuffer* _Buffer, int _Count)
+{
+	if (_Buffer->Data != nullptr)
+	{
+		delete[] _Buffer->Data;
+	}
+
+	if (_Buffer->Buffer != nullptr)
+	{
+		delete _Buffer->Buffer;
+	}
+
+	_Buffer->Count = _Count;
+	_Buffer->Data = new char[_Buffer->Size * _Count];
+
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = _Buffer->Size * _Count;
+	Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	if (FAILED(GetAIMDevice->CreateBuffer(&Desc, nullptr, &_Buffer->Buffer)))
+	{
+		return;
+	}
+}
+
+void RenderManager::AddInstancingData(InstancingBuffer* _Buffer, int _Pos, void * _Data)
+{
+	char* BufferData = (char*)_Buffer->Data;
+	memcpy(BufferData + (_Pos * _Buffer->Size), _Data, _Buffer->Size);
+}
+
+void RenderManager::CopyInstancingData(InstancingBuffer* _Buffer, int _Cout)
+{
+	D3D11_MAPPED_SUBRESOURCE Map = {};
+
+	GetAIMContext->Map(_Buffer->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Map);
+
+	memcpy(Map.pData, _Buffer->Data, _Buffer->Size * _Cout);
+
+	GetAIMContext->Unmap(_Buffer->Buffer, 0);
+}
 
 Ezptr<AIMLight> RenderManager::GetFirstLight()
 {
@@ -46,17 +145,24 @@ Ezptr<AIMLight> RenderManager::GetFirstLight()
 
 bool RenderManager::Init()
 {
-	RenderCBuffer.RenderMode = RM;
+	StaticInstancing = CreateInstancingBuffer(sizeof(InstancingStaticBuffer));
+	FrameAnimInstancing = CreateInstancingBuffer(sizeof(InstancingFrameAnimBuffer));
+	AnimInstancing = CreateInstancingBuffer(sizeof(InstancingStaticBuffer));
 
+	RenderCBuffer.RenderMode = RM;
+	
 	if (false == ShaderManager::Init())
 	{
 		tassertmsg(true, "ShaderManger Init Failed");
 		return false;
 	}
 
+	StaticInstancingShader = ShaderManager::FindShader("Standard3DInstancingShader");
+	StaticInstancingLayout = ShaderManager::FindInputLayout("Standard3DInstancingLayout");
+
 	CreateRasterizerState("CullNone", D3D11_FILL_SOLID, D3D11_CULL_NONE);
 
-	CreateRasterizerState("WireFrame", D3D11_FILL_WIREFRAME);
+	CreateRasterizerState("WireFrame", D3D11_FILL_WIREFRAME, D3D11_CULL_NONE);
 
 	CreateDepthState("LessEqual", TRUE, D3D11_DEPTH_WRITE_MASK_ALL, D3D11_COMPARISON_LESS_EQUAL);
 
@@ -86,28 +192,28 @@ bool RenderManager::Init()
 
 	float ClearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	if (false == CreateRenderTarget("Albedo", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	if (false == CreateRenderTarget("Albedo", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor, 8))
 	{
 		return false;
 	}
 
 	OnDebugRenderTarget("Albedo", Vec3(0.0f, 0.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
 
-	if (false == CreateRenderTarget("Normal", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	if (false == CreateRenderTarget("Normal", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor, 8))
 	{
 		return false;
 	}
 
 	OnDebugRenderTarget("Normal", Vec3(0.0f, 100.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
 
-	if (false == CreateRenderTarget("Depth", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	if (false == CreateRenderTarget("Depth", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor, 8))
 	{
 		return false;
 	}
 
 	OnDebugRenderTarget("Depth", Vec3(0.0f, 200.0f, 0.0f), Vec3(100.0f, 100.0f, 1.0f));
 
-	if (false == CreateRenderTarget("MaterialDif", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor))
+	if (false == CreateRenderTarget("MaterialDif", GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, DXGI_FORMAT_R32G32B32A32_FLOAT, ClearColor, 8))
 	{
 		return false;
 	}
@@ -173,6 +279,112 @@ bool RenderManager::Init()
 
 void RenderManager::Release()
 {
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator StartIter = InstancingGeometryMap.begin();
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator EndIter = InstancingGeometryMap.end();
+
+	for (; StartIter != EndIter; ++StartIter)
+	{
+		if (StartIter->second != nullptr)
+		{
+			delete StartIter->second;
+			StartIter->second = nullptr;
+		}
+	}
+
+	if (StaticInstancing != nullptr)
+	{
+		if (StaticInstancing->Data != nullptr)
+		{
+			delete[] StaticInstancing->Data;
+			StaticInstancing->Data = nullptr;
+		}
+
+		if (StaticInstancing->Buffer != nullptr)
+		{
+			StaticInstancing->Buffer->Release();
+			StaticInstancing->Buffer = nullptr;
+		}
+
+		delete StaticInstancing;
+		StaticInstancing = nullptr;
+	}
+
+	if (FrameAnimInstancing != nullptr)
+	{
+		if (FrameAnimInstancing->Data != nullptr)
+		{
+			delete[] FrameAnimInstancing->Data;
+			FrameAnimInstancing->Data = nullptr;
+		}
+
+		if (FrameAnimInstancing->Buffer != nullptr)
+		{
+			FrameAnimInstancing->Buffer->Release();
+			FrameAnimInstancing->Buffer = nullptr;
+		}
+
+		delete FrameAnimInstancing;
+		FrameAnimInstancing = nullptr;
+	}
+
+	if (AnimInstancing != nullptr)
+	{
+		if (AnimInstancing->Data != nullptr)
+		{
+			delete[] AnimInstancing->Data;
+			AnimInstancing->Data = nullptr;
+		}
+
+		if (AnimInstancing->Buffer != nullptr)
+		{
+			AnimInstancing->Buffer->Release();
+			AnimInstancing->Buffer = nullptr;
+		}
+
+		delete AnimInstancing;
+		AnimInstancing = nullptr;
+	}
+
+	if (ColliderInstancing != nullptr)
+	{
+		if (ColliderInstancing->Data != nullptr)
+		{
+			delete[] ColliderInstancing->Data;
+			ColliderInstancing->Data = nullptr;
+		}
+
+		if (ColliderInstancing->Buffer != nullptr)
+		{
+			ColliderInstancing->Buffer->Release();
+			ColliderInstancing->Buffer = nullptr;
+		}
+
+		delete ColliderInstancing;
+		ColliderInstancing = nullptr;
+	}
+
+	if (LightInstancing != nullptr)
+	{
+		if (LightInstancing->Data != nullptr)
+		{
+			delete[] LightInstancing->Data;
+			LightInstancing->Data = nullptr;
+		}
+
+		if (LightInstancing->Buffer != nullptr)
+		{
+			LightInstancing->Buffer->Release();
+			LightInstancing->Buffer = nullptr;
+		}
+
+		delete LightInstancing;
+		LightInstancing = nullptr;
+	}
+
+	StaticInstancingShader = nullptr;
+	FrameAnimInstancingShader = nullptr;
+	AnimInstancingShader = nullptr;
+
 	CullNone = nullptr;
 	LightAccPointShader = nullptr;
 	LightAccSpotShader = nullptr;
@@ -216,10 +428,87 @@ void RenderManager::AddRenderObject(Ezptr<AIMObject> _Obj)
 
 	if (_Obj->CheckComponent(CT_RENDERER) == false)
 	{
-		return; 
+		if (false == _Obj->CheckComponent(CT_TEXT))
+		{
+			return;
+		}
 	}
 
 	RenderGroup Tmp = _Obj->GetRenderGroup();
+
+	Ezptr<AIMRenderer> Renderer = _Obj->FindComponent<AIMRenderer>(CT_RENDERER);
+
+	if (Renderer != nullptr)
+	{
+		Ezptr<AIMMesh> Mesh = Renderer->GetMesh();
+		Ezptr<AIMMaterial> Material = _Obj->FindComponent<AIMMaterial>(CT_MATERIAL);
+
+		if (Tmp <= RG_ALPHA)
+		{
+			Vec3 Center = Mesh->GetCenter();
+			float Radius = Mesh->GetRadius();
+
+			Ezptr<AIMTransform> Transform = _Obj->GetTransform();
+
+			Vec3 Pos = Transform->GetWorldPosition();
+			Vec3 Scale = Transform->GetWorldScale();
+
+			Center *= Scale;
+			Center += Pos;
+
+			float fScale = Scale.x;
+			fScale = fScale < Scale.y ? Scale.y : fScale;
+			fScale = fScale < Scale.z ? Scale.z : fScale;
+
+			Radius *= fScale;
+
+			Ezptr<AIMCamera> MainCamera = _Obj->GetScene()->GetMainCamera();
+			bool FrustrumCull = MainCamera->FrustrumInSphere(Center, Radius);
+
+			_Obj->SetFrustrumCulling(!FrustrumCull);
+
+			if (FrustrumCull == false)
+			{
+				return;
+			}
+			else
+			{
+				// UI
+			}
+		}
+
+		unsigned int MeshNumber = Mesh->GetSerialNumber();
+		unsigned int MtrlNumber = Material->GetSerialNumber();
+
+		unsigned __int64 Key = MeshNumber;
+
+		Key <<= 32;
+		Key |= MtrlNumber;
+
+		InstancingGeometry* Geometry = FindInstancingGeometry(Key);
+
+		if (Geometry == nullptr)
+		{
+			Geometry = new InstancingGeometry;
+			InstancingGeometryMap.insert(std::unordered_map<unsigned __int64, InstancingGeometry*>::value_type(Key, Geometry));
+		}
+
+		if (_Obj->CheckComponent(CT_FRAMEANIMATION) == true)
+		{
+			Geometry->FrameAnimation = true;
+		}
+		else if (_Obj->CheckComponent(CT_ANIMATION) == true)
+		{
+			Geometry->Animation = true;
+		}
+		else
+		{
+			Geometry->Animation = false;
+			Geometry->FrameAnimation = false;
+		}
+
+		Geometry->Add(_Obj);
+	}
 
 	if (RenderGroupList[Tmp].Size == RenderGroupList[Tmp].Capacity)
 	{
@@ -240,6 +529,58 @@ void RenderManager::AddRenderObject(Ezptr<AIMObject> _Obj)
 
 	RenderGroupList[Tmp].ObjList[RenderGroupList[Tmp].Size] = _Obj;
 	++RenderGroupList[Tmp].Size;
+}
+
+void RenderManager::ComputeInstancing()
+{
+	for (int i = 0; i < RG_END; i++)
+	{
+		InstancingList[i].clear();
+	}
+
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator StartIter = InstancingGeometryMap.begin();
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator EndIter = InstancingGeometryMap.end();
+
+	for (; StartIter != EndIter ; ++StartIter)
+	{
+		InstancingGeometry* Geometry = StartIter->second;
+
+		if (Geometry->Size >= INSTANCING_COUNT)
+		{
+			RenderGroup Tmp = Geometry->ObjList[0]->GetRenderGroup();
+
+			if (Geometry->Animation == true)
+			{
+				if (Geometry->Size > AnimInstancing->Count)
+				{
+					ResizeInstancingBuffer(AnimInstancing, Geometry->Size);
+				}
+			}
+
+			else if (Geometry->FrameAnimation == true)
+			{
+				if (Geometry->Size > FrameAnimInstancing->Count)
+				{
+					ResizeInstancingBuffer(FrameAnimInstancing, Geometry->Size);
+				}
+			}
+
+			else
+			{
+				if (Geometry->Size > StaticInstancing->Count)
+				{
+					ResizeInstancingBuffer(StaticInstancing, Geometry->Size);
+				}
+			}
+
+			for (int i = 0; i < Geometry->Size; i++)
+			{
+				Geometry->ObjList[i]->SetInstancingEnable(true);
+			}
+
+			InstancingList[Tmp].push_back(Geometry);
+		}
+	}
 }
 
 void RenderManager::Render(float _Time)
@@ -269,6 +610,14 @@ void RenderManager::Render(float _Time)
 	DepthDisable->ResetState();
 
 	LightList.Size = 0;
+
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator StartIter2 = InstancingGeometryMap.begin();
+	std::unordered_map<unsigned __int64, InstancingGeometry*>::iterator EndIter2 = InstancingGeometryMap.end();
+
+	for (; StartIter2 != EndIter2 ; ++StartIter2)
+	{
+		StartIter2->second->Clear();
+	}
 }
 
 bool RenderManager::CreateRasterizerState(const std::string & _Name, D3D11_FILL_MODE _Fill, D3D11_CULL_MODE _Cull)
@@ -355,7 +704,7 @@ bool RenderManager::CreateBlendState(const std::string & _Name, BOOL _AlphaToCov
 	return true;
 }
 
-bool RenderManager::CreateRenderTarget(const std::string & _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], DXGI_FORMAT _DepthFormat)
+bool RenderManager::CreateRenderTarget(const std::string & _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], int _SamplerCount, DXGI_FORMAT _DepthFormat)
 {
 	Ezptr<RenderTarget> Target = FindRenderTarget(_Name);
 
@@ -367,7 +716,7 @@ bool RenderManager::CreateRenderTarget(const std::string & _Name, UINT _Width, U
 
 	Target = new RenderTarget;
 
-	if (false == Target->CreateRenderTarget(_Name, _Width, _Height, _Format, _ClearColor, _DepthFormat))
+	if (false == Target->CreateRenderTarget(_Name, _Width, _Height, _Format, _ClearColor, _SamplerCount, _DepthFormat))
 	{
 		tassertmsg(true, "Failed To Create RenderTarget");
 		return false;
@@ -508,6 +857,8 @@ void RenderManager::ResetMultiRenderTarget(const std::string & _Name)
 			MRT->OldTargetVec[i] = nullptr;
 		}
 	}
+
+
 }
 
 Ezptr<RenderState> RenderManager::FindRenderState(const std::string & _Name)
@@ -569,7 +920,7 @@ void RenderManager::RenderDeferred(float _Time)
 	// GBuffer 그리고
 	RenderGBuffer(_Time);
 
-	// 조면 누적 버퍼 생성
+	// 조명 누적 버퍼 생성
 	RenderLightAcc(_Time);
 
 	// 조명누적버퍼 + Albedo합친 최종조명처리 타겟
@@ -580,7 +931,18 @@ void RenderManager::RenderDeferred(float _Time)
 
 	CollisionManager::Render(_Time);
 
-	for (int AA = RG_ALPHA; AA < RG_END; AA++)
+	Ezptr<RenderTarget> DepthTarget = FindRenderTarget("Depth");
+
+	DepthTarget->SetShader(11);
+
+	for (int i = 0; i < RenderGroupList[RG_ALPHA].Size; i++)
+	{
+		RenderGroupList[RG_ALPHA].ObjList[i]->Render(_Time);
+	}
+
+	DepthTarget->ResetShader(11);
+
+	for (int AA = RG_HUD; AA < RG_END; AA++)
 	{
 		for (int BB = 0; BB < RenderGroupList[AA].Size; BB++)
 		{
@@ -602,7 +964,83 @@ void RenderManager::RenderGBuffer(float _Time)
 
 	for (int AA = RG_LANDSCAPE; AA <= RG_DEFAULT; ++AA)
 	{
-		for (int BB = 0; BB < RenderGroupList[AA].Size; ++BB)
+		std::list<InstancingGeometry*>::iterator StartIter = InstancingList[AA].begin();
+		std::list<InstancingGeometry*>::iterator EndIter = InstancingList[AA].end();
+
+		for (; StartIter != EndIter; ++StartIter)
+		{
+			Ezptr<AIMShader> Shader;
+			ID3D11InputLayout* Layout = nullptr;
+
+			InstancingGeometry* Geometry = *StartIter;
+			for (int BB = 0; BB < Geometry->Size; BB++)
+			{
+				AIMObject* Obj = Geometry->ObjList[BB];
+
+				Ezptr<AIMTransform> Transform = Obj->GetTransform();
+				Ezptr<AIMScene> Scene = Obj->GetScene();
+				Ezptr<AIMCamera> Camera = Scene->GetMainCamera();
+
+				if (Geometry->Animation == true)
+				{
+
+				}
+				else if (Geometry->FrameAnimation == true)
+				{
+
+				}
+				else
+				{
+					Matrix WVP, WV, WVRot;
+					WV = Transform->GetLocalMatrix() * Transform->GetWorldMatrix() * Camera->GetView();
+					WVP = WV * Camera->GetProjection();
+
+					WVRot = Transform->GetLocalRotationMatrix() * Transform->GetWorldRotationMatrix() * Camera->GetView();
+
+					InstancingStaticBuffer Buffer;
+					Buffer.WV = WV;
+					Buffer.WVP = WVP;
+					Buffer.WVRot = WVRot;
+
+					Buffer.WV.Transpose();
+					Buffer.WVP.Transpose();
+					Buffer.WVRot.Transpose();
+
+					AddInstancingData(StaticInstancing, BB, &Buffer);
+
+					Shader = StaticInstancingShader;
+					Layout = StaticInstancingLayout;
+				}
+			}
+
+			InstancingBuffer* Buffer = nullptr;
+
+			if (Geometry->Animation == true)
+			{
+				Buffer = AnimInstancing;
+			}
+			else if (Geometry->FrameAnimation == true)
+			{
+				Buffer = FrameAnimInstancing;
+			}
+			else
+			{
+				Buffer = StaticInstancing;
+			}
+
+			CopyInstancingData(Buffer, Geometry->Size);
+
+			Geometry->ObjList[0]->PrevRender(_Time);
+
+			Ezptr<AIMRenderer> Renderer = Geometry->ObjList[0]->FindComponent<AIMRenderer>(CT_RENDERER);
+
+			Renderer->RenderInstancing(Buffer, Shader, Layout, Geometry->Size, _Time);
+		}
+	}
+
+	for (int AA = RG_LANDSCAPE; AA <= RG_DEFAULT; AA++)
+	{
+		for (int BB = 0; BB < RenderGroupList[AA].Size; BB++)
 		{
 			RenderGroupList[AA].ObjList[BB]->Render(_Time);
 		}

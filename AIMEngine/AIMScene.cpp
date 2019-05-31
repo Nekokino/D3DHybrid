@@ -8,6 +8,7 @@
 #include "AIMRenderer.h"
 #include "AIMMaterial.h"
 #include "AIMLight.h"
+#include "SoundManager.h"
 
 AIMScene::AIMScene()
 {
@@ -16,9 +17,10 @@ AIMScene::AIMScene()
 
 AIMScene::~AIMScene()
 {
+	SoundManager::DeleteSound(this);
 	SceneComList.clear();
 	LayerList.clear();
-
+	
 	AIMObject::RemovePrototype(this);
 }
 
@@ -37,12 +39,64 @@ Ezptr<AIMTransform> AIMScene::GetMainCameraTransform() const
 	return MainCameraTransform;
 }
 
+Ezptr<AIMObject> AIMScene::GetUICameraObj() const
+{
+	return UICameraObj;
+}
+
+Ezptr<AIMCamera> AIMScene::GetUICamera() const
+{
+	return UICamera;
+}
+
+Ezptr<AIMTransform> AIMScene::GetUICameraTransform() const
+{
+	return UICameraTransform;
+}
+
+Matrix AIMScene::GetViewMatrix() const
+{
+	return MainCamera->GetView();
+}
+
+Matrix AIMScene::GetProjectionMatrix() const
+{
+	return MainCamera->GetProjection();
+}
+
+Vec3 AIMScene::GetMainCameraPos() const
+{
+	return MainCameraTransform->GetWorldPosition();
+}
+
+Matrix AIMScene::GetUICamViewMatrix() const
+{
+	return UICamera->GetView();
+}
+
+Matrix AIMScene::GetUICamProjectionMatrix() const
+{
+	return UICamera->GetProjection();
+}
+
+Vec3 AIMScene::GetUICameraPos() const
+{
+	return UICameraTransform->GetWorldPosition();
+}
+
 bool AIMScene::Init()
 {
 	AddLayer("Default", 0);
 	AddLayer("UI", INT_MAX - 2);
 
 	AddCamera("MainCamera", Vec3(0.0f, 0.0f, -5.0f), Vec3::Zero, CT_PERS, GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, 90.0f, 0.03f, 1000.0f);
+	//AddCamera("MainCamera", Vec3(0.0f, 2.0f, -5.0f), Vec3(45.0f, 0.0f, 0.0f), CT_PERS, GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, 90.0f, 0.03f, 1000.0f);
+
+	AddCamera("UICamera", Vec3(0.0f, 0.0f, 0.0f), Vec3::Zero, CT_ORTH, GetDeviceInst->GetResolution().Width, GetDeviceInst->GetResolution().Height, 90.0f, 0.0f, 1000.0f);
+
+	UICameraObj = FindCamera("UICamera");
+	UICamera = UICameraObj->FindComponent<AIMCamera>(CT_CAMERA);
+	UICameraTransform = UICameraObj->GetTransform();
 
 	Sky = AIMObject::CreateObject("Sky");
 
@@ -62,36 +116,38 @@ bool AIMScene::Init()
 
 	Ezptr<AIMMaterial> SkyMaterial = Sky->AddComponent<AIMMaterial>("SkyMaterial");
 
-	SkyMaterial->SetDiffuseTextureSet(0, 0, "LinearSampler", 0, 10, "SkyTexture", TEXT("Sky.dds"));
+	SkyMaterial->AddTextureSet(0, 0, 10, "SkyTexture", TEXT("Sky.dds"));
+
+	Sky->EraseComponent("PickSphere");
 
 	Sky->Start();
 
 	Ezptr<AIMLayer> DefaultLayer = FindLayer("Default");
 
-	Ezptr<AIMObject> GlobalSpotLightObj = AIMObject::CreateObject("GlobalSpotLight", DefaultLayer);
+	//Ezptr<AIMObject> GlobalSpotLightObj = AIMObject::CreateObject("GlobalSpotLight", DefaultLayer);
 
-	Ezptr<AIMTransform> SpotLightTransform = GlobalSpotLightObj->GetTransform();
+	//Ezptr<AIMTransform> SpotLightTransform = GlobalSpotLightObj->GetTransform();
 
-	SpotLightTransform->SetWorldRotationX(90.0f);
-	SpotLightTransform->SetWorldPosition(0.0f, 2.0f, 0.0f);
+	//SpotLightTransform->SetWorldRotationX(90.0f);
+	//SpotLightTransform->SetWorldPosition(0.0f, 2.0f, 0.0f);
 
-	Ezptr<AIMLight> GlobalSpotLight = GlobalSpotLightObj->AddComponent<AIMLight>("GlobalSpotLight");
+	//Ezptr<AIMLight> GlobalSpotLight = GlobalSpotLightObj->AddComponent<AIMLight>("GlobalSpotLight");
 
-	GlobalSpotLight->SetLightType(LT_SPOT);
-	GlobalSpotLight->SetLightDistance(2.0f);
-	GlobalSpotLight->SetLightAngle(60.0f, 90.0f);
-	GlobalSpotLight->SetLightColor(Vec4::Red, Vec4::Red * 0.2f, Vec4::Red);
+	//GlobalSpotLight->SetLightType(LT_SPOT);
+	//GlobalSpotLight->SetLightDistance(2.0f);
+	//GlobalSpotLight->SetLightAngle(60.0f, 90.0f);
+	//GlobalSpotLight->SetLightColor(Vec4::Red, Vec4::Red * 0.2f, Vec4::Red);
 
-	Ezptr<AIMObject> GlobalPointLightObj = AIMObject::CreateObject("GlobalPointLight", DefaultLayer);
+	//Ezptr<AIMObject> GlobalPointLightObj = AIMObject::CreateObject("GlobalPointLight", DefaultLayer);
 
-	Ezptr<AIMTransform> PointLightTransform = GlobalPointLightObj->GetTransform();
+	//Ezptr<AIMTransform> PointLightTransform = GlobalPointLightObj->GetTransform();
 
-	PointLightTransform->SetWorldPosition(0.0f, -2.0f, 0.0f);
+	//PointLightTransform->SetWorldPosition(0.0f, -2.0f, 0.0f);
 
-	Ezptr<AIMLight> GlobalPointLight = GlobalPointLightObj->AddComponent<AIMLight>("GlobalPointLight");
+	//Ezptr<AIMLight> GlobalPointLight = GlobalPointLightObj->AddComponent<AIMLight>("GlobalPointLight");
 
-	GlobalPointLight->SetLightType(LT_POINT);
-	GlobalPointLight->SetLightDistance(2.0f);
+	//GlobalPointLight->SetLightType(LT_POINT);
+	//GlobalPointLight->SetLightDistance(2.0f);
 
 	Ezptr<AIMObject> GlobalDirLightObj = AIMObject::CreateObject("GlobalDirLight", DefaultLayer);
 

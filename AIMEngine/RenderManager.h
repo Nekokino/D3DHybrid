@@ -4,6 +4,9 @@
 #include "RefCounter.h"
 #include "RenderTarget.h"
 
+#define INSTANCING_BUFFER_SIZE 4096
+#define INSTANCING_COUNT 5
+
 // 깨달은 점. 이 포인터로는 더블포인터는 힘들 것 같다.
 class Engine_DLL RenderList
 {
@@ -69,6 +72,31 @@ private:
 	static Ezptr<AIMMesh> LightPointVolume;
 	static ID3D11InputLayout* LightPointLayout;
 
+private:
+	static std::unordered_map<unsigned __int64, InstancingGeometry*> InstancingGeometryMap;
+	static std::list<InstancingGeometry*> InstancingList[RG_END];
+	static InstancingBuffer* StaticInstancing;
+	static InstancingBuffer* FrameAnimInstancing;
+	static InstancingBuffer* AnimInstancing;
+	static InstancingBuffer* ColliderInstancing;
+	static InstancingBuffer* LightInstancing;
+
+	static Ezptr<AIMShader> StaticInstancingShader;
+	static Ezptr<AIMShader> FrameAnimInstancingShader;
+	static Ezptr<AIMShader> AnimInstancingShader;
+
+	static ID3D11InputLayout* StaticInstancingLayout;
+	static ID3D11InputLayout* FrameAnimInstancingLayout;
+	static ID3D11InputLayout* AnimInstancingLayout;
+	
+
+private:
+	static InstancingGeometry* FindInstancingGeometry(unsigned __int64 _Key);
+	static InstancingBuffer* CreateInstancingBuffer(int _Size, int _Count = INSTANCING_BUFFER_SIZE);
+	static void ResizeInstancingBuffer(InstancingBuffer* _Buffer, int _Count);
+	static void AddInstancingData(InstancingBuffer* _Buffer, int _Pos, void* _Data);
+	static void CopyInstancingData(InstancingBuffer* _Buffer, int _Cout);
+
 public:
 	static Ezptr<AIMLight> GetFirstLight();
 public:
@@ -78,6 +106,7 @@ public:
 	static void AddRenderObject(Ezptr<AIMObject> _Obj);
 
 public:
+	static void ComputeInstancing();
 	static void Render(float _Time);
 
 public:
@@ -87,7 +116,7 @@ public:
 		D3D11_BLEND _SrcBlendAlpha = D3D11_BLEND_ONE, D3D11_BLEND _DestBlendAlph = D3D11_BLEND_ZERO, D3D11_BLEND_OP _AlphaOp = D3D11_BLEND_OP_ADD, UINT _WriteMask = D3D11_COLOR_WRITE_ENABLE_ALL);
 	static bool CreateBlendState(const std::string& _Name, BOOL _AlphaToCoverage = FALSE, BOOL _IndependentBlend = FALSE);
 
-	static bool CreateRenderTarget(const std::string& _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], DXGI_FORMAT _DepthFormat = DXGI_FORMAT_UNKNOWN);
+	static bool CreateRenderTarget(const std::string& _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], int _SamplerCount = 1, DXGI_FORMAT _DepthFormat = DXGI_FORMAT_UNKNOWN);
 	static bool OnDebugRenderTarget(const std::string& _Name, const Vec3& _Pos, const Vec3& _Scale);
 
 	static bool AddMultiRenderTarget(const std::string& _Name, const std::string& _Target);

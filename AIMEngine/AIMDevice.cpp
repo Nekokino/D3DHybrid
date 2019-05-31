@@ -79,6 +79,22 @@ ID2D1RenderTarget * AIMDevice::Get2DRenderTarget()
 	return RenderTarget2D;
 }
 
+Vec2 AIMDevice::GetWindowToViewportRatio() const
+{
+	RECT Window = {};
+	GetClientRect(hWnd, &Window);
+
+	Vec2 Size;
+	Size.x = Window.right - Window.left;
+	Size.y = Window.bottom - Window.top;
+
+	Vec2 Viewport;
+	Viewport.x = RS.Width;
+	Viewport.y = RS.Height;
+
+	return Viewport / Size;
+}
+
 bool AIMDevice::Init(HWND _hWnd, unsigned int _Width, unsigned int _Height, bool _WindowMode)
 {
 	hWnd = _hWnd;
@@ -173,7 +189,7 @@ bool AIMDevice::Init(HWND _hWnd, unsigned int _Width, unsigned int _Height, bool
 	D2D1_FACTORY_OPTIONS Option = {};
 	Option.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
 
-	if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, Option, &Factory2D)))
+	if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, Option, &Factory2D)))
 	{
 		return false;
 	}

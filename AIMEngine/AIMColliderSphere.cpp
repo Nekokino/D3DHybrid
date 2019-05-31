@@ -8,6 +8,7 @@
 #endif
 
 #include "AIMTransform.h"
+#include "AIMColliderRay.h"
 
 
 AIMColliderSphere::AIMColliderSphere()
@@ -23,6 +24,7 @@ AIMColliderSphere::AIMColliderSphere(const AIMColliderSphere & _Other) : AIMColl
 {
 	Relative = _Other.Relative;
 	Info = _Other.Info;
+	ScaleEnable = _Other.ScaleEnable;
 
 #ifdef _DEBUG
 	Mesh = _Other.Mesh;
@@ -32,6 +34,9 @@ AIMColliderSphere::AIMColliderSphere(const AIMColliderSphere & _Other) : AIMColl
 
 AIMColliderSphere::~AIMColliderSphere()
 {
+#ifdef _DEBUG
+	Mesh = nullptr;
+#endif
 }
 
 void AIMColliderSphere::SetSphereInfo(const Vec3 & _Center, float _Radius)
@@ -39,6 +44,11 @@ void AIMColliderSphere::SetSphereInfo(const Vec3 & _Center, float _Radius)
 	Relative.Center = _Center;
 	Relative.Radius = _Radius;
 	Info.Radius = _Radius;
+}
+
+void AIMColliderSphere::SetScaleEnable(bool _Enable)
+{
+	ScaleEnable = _Enable;
 }
 
 SphereInfo AIMColliderSphere::GetInfo() const
@@ -68,8 +78,25 @@ int AIMColliderSphere::Update(float _Time)
 
 int AIMColliderSphere::LateUpdate(float _Time)
 {
-	Info.Center = Relative.Center + Transform->GetWorldPosition();
+	if (ScaleEnable == true)
+	{
+		Vec3 Scale = Transform->GetWorldScale();
 
+		Info.Center = Relative.Center * Scale + Transform->GetWorldPosition();
+
+		float fScale = Scale.x;
+
+		fScale = fScale < Scale.y ? Scale.y : fScale;
+		fScale = fScale < Scale.z ? Scale.z : fScale;
+
+		Info.Radius = Relative.Radius * fScale;
+	}
+	else
+	{
+		Info.Center = Relative.Center + Transform->GetWorldPosition();
+		Info.Radius = Relative.Radius;
+	}
+	
 	SectionMin = Info.Center - Info.Radius;
 	SectionMax = Info.Center + Info.Radius;
 
@@ -142,7 +169,7 @@ bool AIMColliderSphere::Collision(Ezptr<AIMCollider> _Dest)
 	case CT_POINT:
 		return false;
 	case CT_RAY:
-		return false;
+		return CollisionSp2Ray(Info, ((Ezptr<AIMColliderRay>)_Dest)->GetInfo());
 	case CT_AABB:
 		return false;
 

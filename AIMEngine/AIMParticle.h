@@ -1,16 +1,21 @@
 #pragma once
 #include "AIMComponent.h"
 
+class AIMMaterial;
 class Engine_DLL AIMParticle : public AIMComponent
 {
 	friend class AIMObject;
 
 private:
 	ParticleConstBuffer CBuffer;
+	Ezptr<AIMMaterial> Material;
+	std::string TextureName;
 
 public:
-	bool LoadTexture(const std::string& _Name, const std::vector<TCHAR*>& _FileNameVec, const std::string& _Path);
-	bool LoadTexture(const std::string& _Name, const std::vector<TCHAR*>& _FullPathVec);
+	bool LoadTextureSet(const std::string& _Name, const TCHAR* _FileName = nullptr, const std::string& _Path = "Texture");
+	bool LoadTextureSetFromFullPath(const std::string& _Name, const TCHAR* _FullPath = nullptr);
+	bool LoadTextureSet(const std::string& _Name, const std::vector<TCHAR*>& _FileName, const std::string& _Path = "Texture");
+	bool LoadTextureSetFromFullPath(const std::string& _Name, const std::vector<TCHAR*>& _FullPath);
 
 public:
 	virtual void Start();

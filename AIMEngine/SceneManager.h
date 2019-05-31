@@ -11,6 +11,12 @@ private:
 	static Ezptr<AIMScene> NextScene;
 
 public:
+	static void SetNextScene(Ezptr<AIMScene> _Scene);
+
+private:
+	static int ChangeScene();
+
+public:
 	static bool Init();
 	static void Release();
 	static int Input(float _Time);
@@ -20,6 +26,10 @@ public:
 	static int Render(float _Time);
 
 	static Ezptr<AIMScene> GetScene();
+
+	static Matrix GetViewMatrix();
+	static Matrix GetProjectionMatrix();
+	static Vec3 GetMainCameraPos();
 
 public:
 	template<typename T>

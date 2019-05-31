@@ -5,6 +5,7 @@
 
 class AIMTexture;
 class AIMSampler;
+class AIMSerialNumber;
 class Engine_DLL ResourceManager
 {
 private:
@@ -14,6 +15,9 @@ private:
 
 	static std::vector<Vertex3D> SphereVtxVec;
 	static std::vector<UINT> SphereIdxVec;
+
+	static AIMSerialNumber* SerialNumber;
+	static AIMSerialNumber* TexSerialNumber;
 
 public:
 	static bool Init();
@@ -36,6 +40,8 @@ public:
 	static bool LoadTextureFromFullPath(const std::string& _Name, const TCHAR* _FullPath);
 	static bool LoadTexture(const std::string& _Name, const std::vector<TCHAR*>& _FileNameVec, const std::string& _Path);
 	static bool LoadTextureFromFullPath(const std::string& _Name, const std::vector<TCHAR*>& _FullPathVec);
+
+	static bool DeleteTexture(const std::string& _Name);
 
 	static Ezptr<AIMTexture> FindTexture(const std::string& _Name);
 

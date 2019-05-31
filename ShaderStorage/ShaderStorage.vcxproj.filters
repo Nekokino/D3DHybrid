@@ -7,5 +7,7 @@
     <FxCompile Include="..\Bin\Shader\Light.fx" />
     <FxCompile Include="..\Bin\Shader\Collider.fx" />
     <FxCompile Include="..\Bin\Shader\Particle.fx" />
+    <FxCompile Include="..\Bin\Shader\LandScape.fx" />
+    <FxCompile Include="..\Bin\Shader\UI.fx" />
   </ItemGroup>
 </Project>

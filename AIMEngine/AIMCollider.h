@@ -24,7 +24,6 @@ protected:
 
 protected:
 	ColliderType ColType;
-	unsigned int SerialNumber = UINT_MAX;
 	Vec3 SectionMin;
 	Vec3 SectionMax;
 	_tagCollisionProfile* Profile = nullptr;
@@ -39,15 +38,13 @@ protected:
 	std::function<void(Ezptr<AIMCollider>, Ezptr<AIMCollider>, float)> Callback[CCS_END];
 	bool bCallback[CCS_END] = {};
 
+	bool Pick = false;
+	bool AddCollisionManager = true;
+
 public:
 	ColliderType GetColType() const
 	{
 		return ColType;
-	}
-
-	unsigned int GetSerialNumber() const
-	{
-		return SerialNumber;
 	}
 
 	Vec3 GetSectionMin() const
@@ -60,6 +57,11 @@ public:
 		return SectionMax;
 	}
 
+	bool GetPickEnable()
+	{
+		return Pick;
+	}
+
 	_tagCollisionProfile* GetCollisionProfile() const;
 	unsigned int GetCollisionChannelIndex() const;
 
@@ -69,6 +71,9 @@ public:
 		SerialNumber = _Num;
 	}
 
+	void PickEnable();
+	void EnableCollisionManager(bool _Value);
+
 	void ClearState();
 	void AddSerialNumber(unsigned int _SerialNumber);
 	void DeleteSerialNumber(unsigned int _SerialNumber);
@@ -76,6 +81,7 @@ public:
 	void DeleteCollisionList(unsigned int _SerialNumber);
 	void ClearCollisionList();
 	bool CheckCollisionList(unsigned int _SerialNumber);
+	bool CheckCollisionList();
 	void Call(CollisionCallbackState _State, Ezptr<AIMCollider> _Dest, float _Time);
 
 	void SetChannel(const std::string& _Name);
@@ -99,6 +105,7 @@ public:
 public:
 	bool CollisionSp2Sp(const SphereInfo& _Src, const SphereInfo& _Dest);
 	bool CollisionOBB2OBB(const OBBInfo& _Src, const OBBInfo& _Dest);
+	bool CollisionSp2Ray(const SphereInfo& _Src, const RayInfo& _Dest);
 
 public:
 	void SetCallback(CollisionCallbackState _State, void(*_Func)(Ezptr<AIMCollider>, Ezptr<AIMCollider>, float));;
@@ -106,6 +113,10 @@ public:
 	template<typename T>
 	void SetCallBack(CollisionCallbackState _State, T* _Obj, void(T::*_Func)(Ezptr<AIMCollider>, Ezptr<AIMCollider>, float))
 	{
+		if (bCallback[_State] == true)
+		{
+			return;
+		}
 		bCallback[_State] = true;
 		Callback[_State] = std::bind(_Func, _Obj, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	}

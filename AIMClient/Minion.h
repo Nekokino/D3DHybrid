@@ -1,8 +1,19 @@
 #pragma once
 
 #include <UserComponent.h>
+#include <AIMAnimation.h>
+#include <AIMCollider.h>
+#include <AIMNavigation.h>
 class Minion : public UserComponent
 {
+private:
+	Ezptr<AIMAnimation> Animation;
+	Ezptr<AIMNavigation> Navigation;
+
+public:
+	void Trace(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+	void TraceExit(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+
 public:
 	virtual void Start();
 	virtual bool Init();

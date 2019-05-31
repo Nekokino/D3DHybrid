@@ -27,6 +27,7 @@ bool PathManager::Init()
 	CreatePath("Shader", TEXT("Shader\\"), "Root");
 	CreatePath("Texture", TEXT("Texture\\"), "Root");
 	CreatePath("Mesh", TEXT("Mesh\\"), "Root");
+	CreatePath("Sound", TEXT("Sound\\"), "Root");
 
 	return true;
 }

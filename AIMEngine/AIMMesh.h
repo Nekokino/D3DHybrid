@@ -3,9 +3,9 @@
 #include "RefCounter.h"
 #include "AIMMaterial.h"
 #include "AIMAnimation.h"
-
 typedef struct Engine_DLL _tagVertexBuffer
 {
+public:
 	ID3D11Buffer* Buffer;
 	void* Data;
 	int Size;
@@ -16,6 +16,7 @@ typedef struct Engine_DLL _tagVertexBuffer
 
 typedef struct Engine_DLL _tagIndexBuffer
 {
+public:
 	ID3D11Buffer* Buffer;
 	void* Data;
 	int Size;
@@ -27,6 +28,7 @@ typedef struct Engine_DLL _tagIndexBuffer
 // 메쉬 컨테이너 하나에는 한개의 버텍스버퍼와 여러개의 인덱스 버퍼로 이루어지게 했다.
 typedef struct Engine_DLL _tagMeshContainer
 {
+public:
 	VertexBuffer VB;
 	std::vector<IndexBuffer*> IBVec;
 }MeshContainer, *PMeshContainer;
@@ -46,7 +48,7 @@ private:
 	Vec3 Max;
 	Vec3 Length;
 	Vec3 Center;
-	float Radius = 0.0f;
+	float Radius = 10.0f;
 	Ezptr<AIMMaterial> Material = nullptr;
 	Ezptr<AIMAnimation> Animation = nullptr;
 public:
@@ -70,6 +72,23 @@ public:
 	{
 		return View;
 	}
+	Vec3 GetMin() const
+	{
+		return Min;
+	}
+	Vec3 GetMax() const
+	{
+		return Max;
+	}
+	Vec3 GetCenter() const
+	{
+		return Center;
+	}
+
+	float GetRadius() const
+	{
+		return Radius;
+	}
 
 	void SetView(const Vec3& _Vec)
 	{
@@ -88,6 +107,7 @@ public:
 	void Render();
 	// 특정 컨테이너의 특정 서브셋을 그리는 렌더
 	void Render(size_t _Container, size_t _SubSet = 0);
+	void RenderInstancing(unsigned int _Container, unsigned int _Subset, InstancingBuffer* _InstancingBuffer, int _InstancingCount);
 
 private:
 	bool CreateVertexBuffer(int _Size, int _Count, D3D11_USAGE _Usage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void* _Data);

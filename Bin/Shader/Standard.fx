@@ -211,3 +211,108 @@ PS_Out_GBuffer Standard3DPS(VS_Out_3D _In)
 
     return Out;
 }
+
+VS_Out_3DInstancing Standard3DInstancingVS(VS_In_3DInstancing _In)
+{
+    VS_Out_3DInstancing Out = (VS_Out_3DInstancing) 0.0f;
+
+    _tagSkinning tSkinning = (_tagSkinning) 0.0f;
+
+    tSkinning.Pos = _In.Pos;
+    tSkinning.Normal = _In.Normal;
+    tSkinning.Tangent = _In.Tangent;
+    tSkinning.Binormal = _In.Binormal;
+
+    if (MtrlSkinning == 1)
+    {
+        if (MtrlNormal == 1)
+            tSkinning = Skinning(_In.Pos, _In.Normal, _In.Tangent, _In.Binormal, _In.Weights, _In.Indices);
+        else
+            tSkinning = Skinning(_In.Pos, _In.Normal, _In.Weights, _In.Indices);
+    }
+
+    Out.ProjPos = mul(float4(tSkinning.Pos, 1.0f), _In.WVP);
+    Out.Pos = Out.ProjPos;
+    Out.UV = _In.UV;
+
+    Out.ViewPos = mul(float4(tSkinning.Pos, 1.0f), _In.WV).xyz;
+    Out.Normal = normalize(mul(float4(tSkinning.Normal, 0.0f), _In.WVRot).xyz);
+
+    if (MtrlNormal ==1)
+    {
+        Out.Tangent = normalize(mul(float4(tSkinning.Tangent, 0.0f), _In.WVRot).xyz);
+        Out.Binormal = normalize(mul(float4(tSkinning.Binormal, 0.0f), _In.WVRot).xyz);
+    }
+
+    Out.WVP = WVP;
+    Out.WV = WV;
+    Out.WVRot = WVRotation;
+
+    float4x4 Tmp = _In.WV;
+
+    Out.WVP = _In.WVP;
+    Out.WV = _In.WV;
+    Out.WVRot = _In.WVRot;
+
+    return Out;
+}
+
+PS_Out_GBuffer Standard3DInstancingPS(VS_Out_3DInstancing _In)
+{
+    PS_Out_GBuffer Out = (PS_Out_GBuffer) 0.0f;
+
+    if (RenderMode == RENDER_FORWARD)
+    {
+        LightInfo Info = ComputeLight(_In.ViewPos, _In.Normal);
+
+        float4 Color = DiffuseTex.Sample(LinearSmp, _In.UV);
+
+        Out.Albedo = Color * (Info.Dif + Info.Amb) + Info.Spc;
+    }
+    else
+    {
+        float4 Color = DiffuseTex.Sample(LinearSmp, _In.UV);
+        Out.Albedo = Color;
+
+        float3 Normal = _In.Normal;
+
+        if (MtrlNormal == 1)
+        {
+            float4 NormalCol = NormalTex.Sample(LinearSmp, _In.UV);
+            Normal = NormalCol.xyz * 2.0f - 1.0f;
+
+            float3x3 mat =
+            {
+                _In.Tangent,
+                _In.Binormal,
+                _In.Normal
+            };
+
+            Normal = normalize(mul(Normal, mat));
+        }
+
+        Out.Normal.xyz = Normal;
+        Out.Normal.w = MtrlSpc.w;
+        Out.Depth.x = (_In.ProjPos.z / _In.ProjPos.w);
+        Out.Depth.yz = (float2) 0.0f;
+        Out.Depth.w = _In.ProjPos.w;
+
+        float4 Spc = MtrlSpc;
+
+        if (MtrlSpecular == 1)
+        {
+            float4 Specular = SpecularTex.Sample(LinearSmp, _In.UV);
+
+            Spc.xyz = Specular.xyz;
+        }
+
+        Out.MaterialDif = MtrlDif;
+        Out.MaterialAmb = MtrlAmb;
+        Out.MaterialSpc = Spc;
+        Out.MaterialEmv = MtrlEmv;
+
+    }
+
+    return Out;
+
+}

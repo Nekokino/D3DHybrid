@@ -31,7 +31,7 @@ AIMMaterial::AIMMaterial(const AIMMaterial & _Other) : AIMComponent(_Other)
 			{
 				Ezptr<TextureSet> Tmp = new TextureSet;
 
-				*Tmp = *(StartIter->second);
+				Tmp = (StartIter->second);
 
 				Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(StartIter->first, Tmp));
 			}
@@ -127,6 +127,46 @@ void AIMMaterial::AddTextureSet(int _Container, int _Subset, int _TexReg, const 
 	Tmp->TexReg = _TexReg;
 
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_TexName, Tmp));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Tmp->Texture->GetSerialNumber();
+	}
+}
+
+void AIMMaterial::AddTextureSet(int _Container, int _Subset, int _TexReg, Ezptr<AIMTexture> _Texture)
+{
+	if (_Container >= ContainerVec.size())
+	{
+		Ezptr<MaterialContainer> Container = new MaterialContainer;
+		ContainerVec.push_back(Container);
+	}
+	if (_Subset >= ContainerVec[_Container]->SubsetVec.size())
+	{
+		Ezptr<MaterialSubset> Subset = new MaterialSubset;
+		ContainerVec[_Container]->SubsetVec.push_back(Subset);
+	}
+
+	if (FindTextureSet(_Container, _Subset, _Texture->GetNameTag()) != nullptr)
+	{
+		return;
+	}
+
+	Ezptr<MaterialContainer> Container = ContainerVec[_Container];
+	Ezptr<MaterialSubset> Subset = Container->SubsetVec[_Subset];
+
+	Ezptr<TextureSet> Tmp = new TextureSet;
+
+	Tmp->Texture = _Texture;
+
+	Tmp->TexReg = _TexReg;
+
+	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_Texture->GetNameTag(), Tmp));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Tmp->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::AddTextureSetFromFullPath(int _Container, int _Subset, int _TexReg, const std::string & _TexName, const TCHAR* _FullPath)
@@ -162,6 +202,11 @@ void AIMMaterial::AddTextureSetFromFullPath(int _Container, int _Subset, int _Te
 	Tmp->TexReg = _TexReg;
 
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_TexName, Tmp));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Tmp->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::AddTextureSetArray(int _Container, int _Subset, int _TexReg, const std::string & _TexName, const std::vector<TCHAR*>* _FileNameVec, const std::string & _Path)
@@ -197,6 +242,11 @@ void AIMMaterial::AddTextureSetArray(int _Container, int _Subset, int _TexReg, c
 	Tmp->TexReg = _TexReg;
 
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_TexName, Tmp));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Tmp->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::AddTextureSetArrayFromFullPath(int _Container, int _Subset, int _TexReg, const std::string & _TexName, const std::vector<TCHAR*>* _FullPathVec)
@@ -232,6 +282,11 @@ void AIMMaterial::AddTextureSetArrayFromFullPath(int _Container, int _Subset, in
 	Tmp->TexReg = _TexReg;
 
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_TexName, Tmp));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Tmp->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::DeleteTextureSet(int _Container, int _Subset, const std::string & _Name)
@@ -257,6 +312,24 @@ void AIMMaterial::DeleteTextureSet(int _Container, int _Subset, const std::strin
 	}
 
 	Subset->TextureSetMap.erase(FindIter);
+}
+
+void AIMMaterial::DeleteTextureSet(int _Container, int _Subset)
+{
+	if (_Container >= ContainerVec.size())
+	{
+		return;
+	}
+
+	if (_Subset >= ContainerVec[_Container]->SubsetVec.size())
+	{
+		return;
+	}
+
+	Ezptr<MaterialContainer> Container = ContainerVec[_Container];
+	Ezptr<MaterialSubset> Subset = Container->SubsetVec[_Subset];
+
+	Subset->TextureSetMap.clear();
 }
 
 void AIMMaterial::ChangeTextureSet(int _Container, int _Subset, int _TexReg, const std::string & _Name, const std::string & _ChangeName, const TCHAR* _FileName, const std::string& _Path)
@@ -287,6 +360,51 @@ void AIMMaterial::ChangeTextureSet(int _Container, int _Subset, int _TexReg, con
 
 	Subset->TextureSetMap.erase(_Name);
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_ChangeName, Origin));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Origin->Texture->GetSerialNumber();
+	}
+}
+
+void AIMMaterial::ChangeTextureSet(int _Container, int _Subset, int _TexReg, const std::string & _Name, Ezptr<AIMTexture> _Texture)
+{
+	if (_Container >= ContainerVec.size())
+	{
+		Ezptr<MaterialContainer> Container = new MaterialContainer;
+		ContainerVec.push_back(Container);
+	}
+	if (_Subset >= ContainerVec[_Container]->SubsetVec.size())
+	{
+		Ezptr<MaterialSubset> Subset = new MaterialSubset;
+		ContainerVec[_Container]->SubsetVec.push_back(Subset);
+	}
+
+	Ezptr<MaterialContainer> Container = ContainerVec[_Container];
+	Ezptr<MaterialSubset> Subset = Container->SubsetVec[_Subset];
+
+	Ezptr<TextureSet> Origin = FindTextureSet(_Container, _Subset, _Name);
+
+	if (Origin != nullptr)
+	{
+		std::string Name = Origin->Texture->GetNameTag();
+		ResourceManager::DeleteTexture(Name);
+	}
+	else
+	{
+		Origin = new TextureSet;
+	}
+
+	Origin->TexReg = _TexReg;
+	Origin->Texture = _Texture;
+
+	Subset->TextureSetMap.erase(_Name);
+	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_Texture->GetNameTag(), Origin));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Origin->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::ChangeTextureSetFromFullPath(int _Container, int _Subset, int _TexReg, const std::string & _Name, const std::string & _ChangeName, const TCHAR * _FullPath)
@@ -307,6 +425,16 @@ void AIMMaterial::ChangeTextureSetFromFullPath(int _Container, int _Subset, int 
 
 	Ezptr<TextureSet> Origin = FindTextureSet(_Container, _Subset, _Name);
 
+	if (Origin != nullptr)
+	{
+		std::string Name = Origin->Texture->GetNameTag();
+		ResourceManager::DeleteTexture(Name);
+	}
+	else
+	{
+		Origin = new TextureSet;
+	}
+
 	Origin->TexReg = _TexReg;
 
 	if (_FullPath != nullptr)
@@ -317,6 +445,11 @@ void AIMMaterial::ChangeTextureSetFromFullPath(int _Container, int _Subset, int 
 
 	Subset->TextureSetMap.erase(_Name);
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_ChangeName, Origin));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Origin->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::ChangeTextureSetArray(int _Container, int _Subset, int _TexReg, const std::string & _Name, const std::string & _ChangeName, const std::vector<TCHAR*>* _FileNameVec, const std::string & _Path)
@@ -337,6 +470,16 @@ void AIMMaterial::ChangeTextureSetArray(int _Container, int _Subset, int _TexReg
 
 	Ezptr<TextureSet> Origin = FindTextureSet(_Container, _Subset, _Name);
 
+	if (Origin != nullptr)
+	{
+		std::string Name = Origin->Texture->GetNameTag();
+		ResourceManager::DeleteTexture(Name);
+	}
+	else
+	{
+		Origin = new TextureSet;
+	}
+
 	Origin->TexReg = _TexReg;
 
 	if (_FileNameVec != nullptr)
@@ -347,6 +490,11 @@ void AIMMaterial::ChangeTextureSetArray(int _Container, int _Subset, int _TexReg
 
 	Subset->TextureSetMap.erase(_Name);
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_ChangeName, Origin));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Origin->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::ChangeTextureSetArrayFromFullPath(int _Container, int _Subset, int _TexReg, const std::string & _Name, const std::string & _ChangeName, const std::vector<TCHAR*>* _FullPathVec)
@@ -367,6 +515,16 @@ void AIMMaterial::ChangeTextureSetArrayFromFullPath(int _Container, int _Subset,
 
 	Ezptr<TextureSet> Origin = FindTextureSet(_Container, _Subset, _Name);
 
+	if (Origin != nullptr)
+	{
+		std::string Name = Origin->Texture->GetNameTag();
+		ResourceManager::DeleteTexture(Name);
+	}
+	else
+	{
+		Origin = new TextureSet;
+	}
+
 	Origin->TexReg = _TexReg;
 
 	if (_FullPathVec != nullptr)
@@ -377,6 +535,11 @@ void AIMMaterial::ChangeTextureSetArrayFromFullPath(int _Container, int _Subset,
 
 	Subset->TextureSetMap.erase(_Name);
 	Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(_ChangeName, Origin));
+
+	if (Subset->TextureSetMap.size() == 1)
+	{
+		SerialNumber = Origin->Texture->GetSerialNumber();
+	}
 }
 
 void AIMMaterial::BumpTextureEnable(int _Container, int _Subset)
@@ -421,12 +584,12 @@ Ezptr<TextureSet> AIMMaterial::FindTextureSet(int _Container, int _Subset, const
 {
 	if (_Container >= ContainerVec.size())
 	{
-		return;
+		return nullptr;
 	}
 
 	if (_Subset >= ContainerVec[_Container]->SubsetVec.size())
 	{
-		return;
+		return nullptr;
 	}
 
 	Ezptr<MaterialContainer> Container = ContainerVec[_Container];
@@ -593,6 +756,11 @@ void AIMMaterial::Load(FILE * _File)
 				LoadTextureSet(_File, &TexSet);
 
 				Subset->TextureSetMap.insert(std::unordered_map<std::string, Ezptr<TextureSet>>::value_type(TexSet->Texture->GetNameTag(), TexSet));
+
+				if (Subset->TextureSetMap.size() == 1)
+				{
+					SerialNumber = TexSet->Texture->GetSerialNumber();
+				}
 			}
 		}
 	}

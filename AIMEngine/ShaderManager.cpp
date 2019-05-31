@@ -226,11 +226,77 @@ bool ShaderManager::Init()
 		return false;
 	}
 
+#pragma endregion
+
+#pragma region LandScapeShader
+
+	Entry[ST_VTX] = "LandScapeVS";
+	Entry[ST_PIX] = "LandScapePS";
 	Entry[ST_GEO] = "";
+
+	if (false == LoadShader("LandScapeShader", TEXT("LandScape.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+#pragma endregion
+	
+#pragma region UIButtonShader
+
+	Entry[ST_VTX] = "ButtonVS";
+	Entry[ST_PIX] = "ButtonPS";
+	Entry[ST_GEO] = "";
+
+	if (false == LoadShader("ButtonShader", TEXT("UI.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
 
 #pragma endregion
 
+#pragma region Standard3DInstancingShader
 
+	Entry[ST_VTX] = "Standard3DInstancingVS";
+	Entry[ST_PIX] = "Standard3DInstancingPS";
+	Entry[ST_GEO] = "";
+
+	if (false == LoadShader("Standard3DInstancingShader", TEXT("Standard.fx"), Entry, "Shader"))
+	{
+		return false;
+	}
+
+	AddInputDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 8, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BLENDWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	AddInputDesc("BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+
+	InputSize = 0;
+
+	AddInputDesc("WORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	 
+	AddInputDesc("WORLDVIEW", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEW", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEW", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEW", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+
+	AddInputDesc("WORLDVIEWROT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEWROT", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEWROT", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+	AddInputDesc("WORLDVIEWROT", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 16, 1, D3D11_INPUT_PER_INSTANCE_DATA, 1);
+
+	if (false == CreateInputLayout("Standard3DInstancingLayout", "Standard3DInstancingShader"))
+	{
+		return false;
+	}
+
+
+#pragma endregion
 
 #pragma region ConstBuffer
 
@@ -241,6 +307,9 @@ bool ShaderManager::Init()
 	CreateConstBuffer("Debug", sizeof(DebugConstBuffer), 9, CS_VERTEX | CS_PIXEL);
 	CreateConstBuffer("Collider", sizeof(Vec4), 10, CS_PIXEL);
 	CreateConstBuffer("Particle", sizeof(ParticleConstBuffer), 10, CS_GEOMETRY);
+	CreateConstBuffer("FrameAnimation", sizeof(FrameAnimationConstBuffer), 8, CS_VERTEX | CS_PIXEL | CS_GEOMETRY);
+	CreateConstBuffer("LandScape", sizeof(LandScapeConstBuffer), 10, CS_VERTEX | CS_PIXEL);
+	CreateConstBuffer("Button", sizeof(ButtonConstBuffer), 11, CS_VERTEX | CS_PIXEL);
 
 #pragma endregion
 

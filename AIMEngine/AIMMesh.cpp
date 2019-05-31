@@ -208,6 +208,31 @@ void AIMMesh::Render(size_t _Container, size_t _SubSet)
 	}
 }
 
+void AIMMesh::RenderInstancing(unsigned int _Container, unsigned int _Subset, InstancingBuffer* _InstancingBuffer, int _InstancingCount)
+{
+	MeshContainer* Container = MeshContainerVec[_Container];
+
+	UINT Stride[2] = { Container->VB.Size, _InstancingBuffer->Size };
+	UINT Offset[2] = { 0, 0 };
+
+	ID3D11Buffer* Buffer[2] = { Container->VB.Buffer, _InstancingBuffer->Buffer };
+
+	GetAIMContext->IASetPrimitiveTopology(Container->VB.Primitive);
+	GetAIMContext->IASetVertexBuffers(0, 2, Buffer, Stride, Offset);
+
+	if (Container->IBVec.empty() == true)
+	{
+		GetAIMContext->DrawInstanced(Container->VB.Count, _InstancingCount, 0, 0);
+	}
+	else
+	{
+		IndexBuffer* Subset = Container->IBVec[_Subset];
+
+		GetAIMContext->IASetIndexBuffer(Subset->Buffer, Subset->Format, 0);
+		GetAIMContext->DrawIndexedInstanced(Subset->Count, _InstancingCount, 0, 0, 0);
+	}
+}
+
 bool AIMMesh::CreateVertexBuffer(int _Size, int _Count, D3D11_USAGE _Usage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Data)
 {
 	MeshContainer* Container = MeshContainerVec.back();
@@ -249,9 +274,6 @@ bool AIMMesh::CreateVertexBuffer(int _Size, int _Count, D3D11_USAGE _Usage, D3D1
 	char* Vertices = (char*)_Data;
 	Vec3 Pos;
 	memcpy(&Pos, Vertices, sizeof(Vec3));
-
-	Min = Pos;
-	Max = Pos;
 
 	for (unsigned int i = 0; i < Count; i++)
 	{
@@ -488,7 +510,7 @@ bool AIMMesh::ConvertFbx(FbxLoader * _Loader, const char * _FullPath)
 			strcpy_s(Path, Mtrl->DifTex.c_str());
 #endif
 
-			Material->SetDiffuseTextureFromFullPath(Container, (int)i, "LinearSampler", 0, 0, Name, Path);
+			Material->AddTextureSetFromFullPath(Container, (int)i, 0, Name, Path);
 
 			if (false == Mtrl->BumpTex.empty())
 			{
@@ -503,7 +525,9 @@ bool AIMMesh::ConvertFbx(FbxLoader * _Loader, const char * _FullPath)
 				strcpy_s(Path, Mtrl->BumpTex.c_str());
 #endif
 
-				Material->SetNormalTextureFromFullPath(Container, (int)i, "LinearSampler", 0, 1, Name, Path);
+				Material->AddTextureSetFromFullPath(Container, (int)i, 1, Name, Path);
+
+				Material->BumpTextureEnable(Container, i);
 			}
 
 			if (false == Mtrl->SpcTex.empty())
@@ -518,7 +542,9 @@ bool AIMMesh::ConvertFbx(FbxLoader * _Loader, const char * _FullPath)
 #else
 				strcpy_s(Path, Mtrl->SpcTex.c_str());
 #endif
-				Material->SetSpecularTextureFromFullPath(Container, (int)i, "LinearSampler", 0, 2, Name, Path);
+				Material->AddTextureSetFromFullPath(Container, (int)i, 2, Name, Path);
+
+				Material->SpecularTextureEnable(Container, i);
 			}
 		}
 	}

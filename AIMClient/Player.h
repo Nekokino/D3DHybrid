@@ -22,6 +22,7 @@ public:
 
 public:
 	void MoveFront(float _Scale, float _Time);
+	void Rotation(float _Scale, float _Time);
 	void Fire(float _Time);
 	void Test(float _Time);
 
@@ -29,6 +30,8 @@ private:
 	void Hit(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
 	void HitStay(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
 	void HitLeave(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+	void HitPick(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
+	void HitPickLeave(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest, float _Time);
 
 public:
 	Player();

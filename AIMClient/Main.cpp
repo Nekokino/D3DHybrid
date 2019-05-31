@@ -5,6 +5,7 @@
 #include <SceneManager.h>
 
 #include "MainScene.h"
+#include "StartScene.h"
 
 #ifdef _DEBUG
 	#ifdef _M_IX86
@@ -33,7 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return 0;
 	}
 
-	SceneManager::AddSceneComponent<MainScene>();
+	SceneManager::AddSceneComponent<StartScene>();
 
 	int	Return = Core::Inst()->Run();
 

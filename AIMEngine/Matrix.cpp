@@ -131,8 +131,8 @@ DirectX::XMMATRIX _tagMatrix::Rotation(float _x, float _y, float _z)
 	DirectX::XMMATRIX MatRotX, MatRotY, MatRotZ;
 
 	MatRotX = DirectX::XMMatrixRotationX(MATH_D2R * _x);
-	MatRotY = DirectX::XMMatrixRotationX(MATH_D2R * _y);
-	MatRotZ = DirectX::XMMatrixRotationX(MATH_D2R * _z);
+	MatRotY = DirectX::XMMatrixRotationY(MATH_D2R * _y);
+	MatRotZ = DirectX::XMMatrixRotationZ(MATH_D2R * _z);
 
 	m = MatRotX * MatRotY * MatRotZ;
 	return m;
@@ -143,8 +143,8 @@ DirectX::XMMATRIX _tagMatrix::Rotation(const _tagVec3 & _Rot)
 	DirectX::XMMATRIX MatRotX, MatRotY, MatRotZ;
 
 	MatRotX = DirectX::XMMatrixRotationX(MATH_D2R * _Rot.x);
-	MatRotY = DirectX::XMMatrixRotationX(MATH_D2R * _Rot.y);
-	MatRotZ = DirectX::XMMatrixRotationX(MATH_D2R * _Rot.z);
+	MatRotY = DirectX::XMMatrixRotationY(MATH_D2R * _Rot.y);
+	MatRotZ = DirectX::XMMatrixRotationZ(MATH_D2R * _Rot.z);
 
 	m = MatRotX * MatRotY * MatRotZ;
 	return m;
@@ -158,13 +158,13 @@ DirectX::XMMATRIX _tagMatrix::RotationX(float _x)
 
 DirectX::XMMATRIX _tagMatrix::RotationY(float _y)
 {
-	m = DirectX::XMMatrixRotationX(MATH_D2R * _y);
+	m = DirectX::XMMatrixRotationY(MATH_D2R * _y);
 	return m;
 }
 
 DirectX::XMMATRIX _tagMatrix::RotationZ(float _z)
 {
-	m = DirectX::XMMatrixRotationX(MATH_D2R * _z);
+	m = DirectX::XMMatrixRotationZ(MATH_D2R * _z);
 	return m;
 }
 

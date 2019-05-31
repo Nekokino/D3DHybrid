@@ -7,11 +7,11 @@
     <Filter Include="00 ClientCore">
       <UniqueIdentifier>{23304777-bf8d-453c-af3a-34f9e781716d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01 Main">
-      <UniqueIdentifier>{c1b68bff-187e-475f-b648-1db89ebe0b47}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02 UserCom">
       <UniqueIdentifier>{82c0723a-4180-4985-b3f5-7467050659b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01 Scene">
+      <UniqueIdentifier>{c1b68bff-187e-475f-b648-1db89ebe0b47}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -19,7 +19,7 @@
       <Filter>00 ClientCore</Filter>
     </ClCompile>
     <ClCompile Include="MainScene.cpp">
-      <Filter>01 Main</Filter>
+      <Filter>01 Scene</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>02 UserCom</Filter>
@@ -30,13 +30,16 @@
     <ClCompile Include="Bullet.cpp">
       <Filter>02 UserCom</Filter>
     </ClCompile>
+    <ClCompile Include="StartScene.cpp">
+      <Filter>01 Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource</Filter>
     </ClInclude>
     <ClInclude Include="MainScene.h">
-      <Filter>01 Main</Filter>
+      <Filter>01 Scene</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>02 UserCom</Filter>
@@ -46,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="Bullet.h">
       <Filter>02 UserCom</Filter>
+    </ClInclude>
+    <ClInclude Include="StartScene.h">
+      <Filter>01 Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

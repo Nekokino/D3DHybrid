@@ -4,7 +4,7 @@ RefCounter::RefCounter() : Count(0)
 {
 }
 
-RefCounter::RefCounter(const RefCounter & _Other) : Count(0)
+RefCounter::RefCounter(const RefCounter & _Other) : Count(0), NameTag(_Other.NameTag), Alive(_Other.Alive), Enable(_Other.Enable), SerialNumber(_Other.SerialNumber)
 {
 }
 

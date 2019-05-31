@@ -2,6 +2,12 @@
 
 #include "Macro.h"
 
+enum SceneChange
+{
+	SC_NONE,
+	SC_NEXT,
+};
+
 enum ShaderType
 {
 	ST_VTX,
@@ -19,9 +25,15 @@ enum ComType
 	CT_MATERIAL,
 	CT_COLLIDER,
 	CT_LIGHT,
+	CT_PARTICLE,
 	CT_UI,
 	CT_LANDSCAPE,
 	CT_ANIMATION,
+	CT_FRAMEANIMATION,
+	CT_ARM,
+	CT_NAVIGATION,
+	CT_TEXT,
+	CT_SOUND,
 	CT_END,
 };
 
@@ -48,12 +60,26 @@ enum KeyState
 	KS_END,
 };
 
+enum KeyStateFlag
+{
+	KSF_PRESS = 0x1,
+	KSF_PUSH = 0x2,
+	KSF_RELEASE = 0x4,
+};
+
 enum SKEY
 {
 	SKEY_CTRL,
 	SKEY_SHIFT,
 	SKEY_ALT,
 	SKEY_END,
+};
+
+enum SKEYEnable
+{
+	SE_CTRL = 0x1,
+	SE_ALT = 0x2,
+	SE_SHIFT = 0x4,
 };
 
 enum LookAt_Axis
@@ -132,4 +158,20 @@ enum CollisionCallbackState
 	CCS_STAY,
 	CCS_LEAVE,
 	CCS_END,
+};
+
+enum FrameAnimationType
+{
+	AFT_ATLAS,
+	AFT_FRAME,
+	AFT_END,
+};
+
+enum MouseButton
+{
+	MB_NONE = -1,
+	MB_LBUTTON,
+	MB_RBUTTON,
+	MB_MBUTTON,
+	MB_END,
 };

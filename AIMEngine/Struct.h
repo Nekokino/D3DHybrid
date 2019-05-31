@@ -81,8 +81,9 @@ typedef struct Engine_DLL _tagMaterial
 	int Skinning;
 	float Dump;
 
-	_tagMaterial() : Diffuse(Vec4::White), Ambient(Vec4::White), Specular(Vec4::White), Emissive(Vec4::White), IsNormal(0), IsSpecular(0), Skinning(0)
+	_tagMaterial() : Diffuse(Vec4::White), Ambient(Vec4::White), Specular(Vec4::Black), Emissive(Vec4::Black), IsNormal(0), IsSpecular(0), Skinning(0)
 	{
+		Specular.w = 3.2f;
 	}
 }Material, *PMaterial;
 
@@ -147,6 +148,111 @@ typedef struct Engine_DLL _tagParticleConstBuffer
 	float Dummy;
 }ParticleConstBuffer, *PParticleConstBuffer;
 
+typedef struct Engine_DLL _tagFrameAnimtionConstBuffer
+{
+	int FrameAnimationType;
+	int AnimationOption;
+	Vec2 TextureSize;
+	Vec2 Start;
+	Vec2 End;
+	int Frame;
+	Vec3 Dummy;
+}FrameAnimationConstBuffer, *PFrameAnimationConstBuffer;
+
+typedef struct Engine_DLL _tagLandScapeConstBuffer
+{
+	float DetailLevelX;
+	float DetailLevelZ;
+	int SplattingCount;
+	float Dummy;
+}LandScapeConstBuffer, *PLandScapeConstBuffer;
+
+typedef struct Engine_DLL _tagButtonConstBuffer
+{
+	Vec4 Color;
+}ButtonConstBuffer, *PButtonConstBuffer;
+
+typedef struct Engine_DLL _tagInstancingBuffer
+{
+	ID3D11Buffer* Buffer;
+	void* Data;
+	int Size;
+	int Count;
+	D3D11_USAGE Usage;
+}InstancingBuffer, *PInstancingBuffer;
+
+typedef struct Engine_DLL _tagInstancingStaticBuffer
+{
+	Matrix WVP;
+	Matrix WV;
+	Matrix WVRot;
+}InstancingStaticBuffer, *PInstancingStaticBuffer;
+
+typedef struct Engine_DLL _tagInstancingFrameAnimBuffer
+{
+	Matrix WVP;
+	Matrix VP;
+	Vec2 Start;
+	Vec2 End;
+	Vec2 Size;
+	int Frame;
+}InstancingFrameAnimBuffer, *PInstancingFrameAnimBuffer;
+
+class AIMObject;
+typedef struct Engine_DLL _tagInstancingGeometry
+{
+	bool Animation;
+	bool FrameAnimation;
+	AIMObject** ObjList;
+	int Size;
+	int Capacity;
+
+	void Resize()
+	{
+		if (Size == Capacity)
+		{
+			Capacity *= 2;
+			AIMObject** List = new AIMObject*[Capacity];
+
+			memset(List, 0, sizeof(AIMObject*) * Capacity);
+			memcpy(List, ObjList, sizeof(AIMObject*) * Size);
+
+			delete[] ObjList;
+			ObjList = List;
+		}
+	}
+
+	void Add(AIMObject* _Obj)
+	{
+		Resize();
+		ObjList[Size] = _Obj;
+		++Size;
+	}
+
+	void Clear()
+	{
+		Size = 0;
+	}
+
+	_tagInstancingGeometry()
+	{
+		Size = 0;
+		Capacity = 100;
+		Animation = false;
+		FrameAnimation = false;
+		ObjList = new AIMObject*[Capacity];
+	}
+	
+	~_tagInstancingGeometry()
+	{
+		if (ObjList != nullptr)
+		{
+			delete[] ObjList;
+			ObjList = nullptr;
+		}
+	}
+}InstancingGeometry, *PInstancingGeometry;
+
 typedef struct Engine_DLL _tagSphereInfo
 {
 	Vec3 Center;
@@ -176,3 +282,9 @@ typedef struct Engine_DLL _tagOBBInfo
 		}
 	}
 }OBBInfo, *POBBInfo;
+
+typedef struct Engine_DLL _tagRayInfo
+{
+	Vec3 Origin;
+	Vec3 Dir;
+}RayInfo, *PRayInfo;

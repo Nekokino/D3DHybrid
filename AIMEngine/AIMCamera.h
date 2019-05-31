@@ -1,6 +1,8 @@
 #pragma once
 
 #include "AIMComponent.h"
+
+class AIMFrustrum;
 class Engine_DLL __declspec(align(16)) AIMCamera : public AIMComponent
 {
 	friend class AIMObject;
@@ -14,6 +16,8 @@ private:
 	float Angle = 0.0f;
 	float Near = 0.0f;
 	float Far = 0.0f;
+	bool bUpdate = true;
+	AIMFrustrum* Frustrum = nullptr;
 
 public:
 	void SetCameraInfo(CamType _Type, UINT _Widht, UINT _Height, float _Angle, float _Near, float _Far);
@@ -29,6 +33,15 @@ public:
 	{
 		return Projection;
 	}
+
+	bool GetUpdate() const
+	{
+		return bUpdate;
+	}
+
+public:
+	bool FrustrumInPoint(const Vec3& _Pos);
+	bool FrustrumInSphere(const Vec3& _Center, float _Radius);
 
 public:
 	virtual void Start();

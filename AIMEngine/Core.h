@@ -38,14 +38,16 @@ private:
 	Resolution Rs;
 	float ClearColor[4];
 	static bool Loop;
+	bool EditMode;
 
 public:
 	HINSTANCE GetWindowInst() const;
 	HWND GetWindowHandle() const;
+	bool GetEditMode() const;
 
 	int Run();
-	bool Init(HINSTANCE _hInst, const TCHAR* _Title, const TCHAR* _ClassName, int _Width, int _Height, int _IconID, int _SmallIconID, bool _WindowMode = true);
-	bool Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _WindowMode = true);
+	bool Init(HINSTANCE _hInst, const TCHAR* _Title, const TCHAR* _ClassName, int _Width, int _Height, int _IconID, int _SmallIconID, bool _EditMode = false, bool _WindowMode = true);
+	bool Init(HINSTANCE _hInst, HWND _hWnd, int _Width, int _Height, bool _EditMode =false, bool _WindowMode = true);
 	bool Init(HINSTANCE _hInst, const TCHAR* _Title)
 	{
 		hInst = _hInst;
@@ -56,6 +58,7 @@ public:
 	void Logic();
 
 	void SetClearColor(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a);
+	void OnEditMode();
 
 private:
 	int Input(float _Time);

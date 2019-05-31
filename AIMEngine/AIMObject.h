@@ -14,19 +14,22 @@ private:
 
 public:
 	static Ezptr<AIMObject> CreateObject(const std::string& _Name = "", Ezptr<AIMLayer> _Layer = nullptr);
-	static Ezptr<AIMObject> CreatePrototype(const std::string& _Name, Ezptr<AIMScene> _Scene = nullptr);
-	static Ezptr<AIMObject> CreateClone(const std::string& _Name, Ezptr<AIMScene> _Scene, Ezptr<AIMLayer> _Layer = nullptr);
+	static Ezptr<AIMObject> CreatePrototype(const std::string& _Name, AIMScene* _Scene = nullptr);
+	static Ezptr<AIMObject> CreateClone(const std::string& _Name, AIMScene* _Scene, Ezptr<AIMLayer> _Layer = nullptr);
 	static void RemovePrototype(AIMScene* _Scene);
 	static void RemovePrototype(AIMScene* _Scene, const std::string& _Prototype);
 
 private:
-	static Ezptr<AIMObject> FindPrototype(const std::string& _Name, Ezptr<AIMScene> _Scene = nullptr);
+	static Ezptr<AIMObject> FindPrototype(const std::string& _Name, AIMScene* _Scene = nullptr);
 
 private:
 	AIMScene* Scene = nullptr;
 	AIMLayer* Layer = nullptr;
 	Ezptr<AIMTransform> Transform = nullptr;
 	RenderGroup RG = RG_DEFAULT;
+	float LifeTime = -1.0f;
+	bool Instancing = false;
+	bool Frustrum = false;
 
 public:
 	AIMScene* GetScene() const;
@@ -36,11 +39,26 @@ public:
 	{
 		return RG;
 	}
+	float GetLifeTime() const
+	{
+		return LifeTime;
+	}
+	bool IsInstancing() const
+	{
+		return Instancing;
+	}
+	bool IsFrustrumCulling() const
+	{
+		return Frustrum;
+	}
 
 public:
 	void SetScene(AIMScene* _Scene);
 	void SetLayer(AIMLayer* _Layer);
 	void SetRenderGroup(RenderGroup _RG);
+	void SetLifeTime(float _Time);
+	void SetInstancingEnable(bool _Enable);
+	void SetFrustrumCulling(bool _Culling);
 
 private:
 	std::list<Ezptr<AIMComponent>> ComList;
@@ -57,6 +75,7 @@ public:
 	int Update(float _Time);
 	int LateUpdate(float _Time);
 	int Collision(float _Time);
+	int PrevRender(float _Time);
 	int Render(float _Time);
 
 	AIMObject* Clone() const;

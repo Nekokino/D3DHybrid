@@ -1,21 +1,28 @@
 #include "AIMCamera.h"
 #include "AIMTransform.h"
+#include "AIMFrustrum.h"
 
 
 AIMCamera::AIMCamera()
 {
 	CT = CT_CAMERA;
+	Frustrum = new AIMFrustrum;
 }
 
 AIMCamera::AIMCamera(const AIMCamera & _Other) : View(_Other.View), Projection(_Other.Projection), CameraType(_Other.CameraType),
-Width(_Other.Width), Height(_Other.Height), Angle(_Other.Angle), Near(_Other.Near), Far(_Other.Far), AIMComponent(_Other)
+Width(_Other.Width), Height(_Other.Height), Angle(_Other.Angle), Near(_Other.Near), Far(_Other.Far), AIMComponent(_Other), bUpdate(_Other.bUpdate)
 {
-
+	Frustrum = new AIMFrustrum;
 }
 
 
 AIMCamera::~AIMCamera()
 {
+	if (Frustrum != nullptr)
+	{
+		delete Frustrum;
+		Frustrum = nullptr;
+	}
 }
 
 void AIMCamera::SetCameraInfo(CamType _Type, UINT _Width, UINT _Height, float _Angle, float _Near, float _Far)
@@ -37,7 +44,7 @@ void AIMCamera::SetCameraType(CamType _Type)
 		Projection = DirectX::XMMatrixPerspectiveFovLH(MATH_D2R * Angle, (float)Width / (float)Height, Near, Far);
 		break;
 	case CT_ORTH:
-		Projection = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, (float)Width, (float)Height, 0.0f, 0.0f, Far);
+		Projection = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, (float)Width, 0.0f, (float)Height, 0.0f, Far);
 		break;
 	default:
 		break;
@@ -60,13 +67,25 @@ int AIMCamera::Input(float _Time)
 
 int AIMCamera::Update(float _Time)
 {
+	bUpdate = false;
 	return 0;
 }
 
 int AIMCamera::LateUpdate(float _Time)
 {
-	if (Transform->GetUpdate() == true)
+	return 0;
+}
+
+int AIMCamera::Collision(float _Time)
+{
+	return 0;
+}
+
+int AIMCamera::PrevRender(float _Time)
+{
+	if (Transform->GetUpdate() == true && Transform->GetUI() == false)
 	{
+		bUpdate = true;
 		// 뷰행렬을 구하는 과정이다.
 		// 정석적으로는
 		// 카메라의 위치벡터 Eye
@@ -102,7 +121,7 @@ int AIMCamera::LateUpdate(float _Time)
 			// 카메라 위치정보를 뷰행렬에 담는다.
 			memcpy(&View[i][0], &Transform->GetWorldAxis((Axis)i), sizeof(Vec3));
 		}
-		
+
 		// 뷰행렬 전치(행과 열을 바꾼다)
 		View.Transpose();
 
@@ -113,16 +132,10 @@ int AIMCamera::LateUpdate(float _Time)
 		}
 	}
 
-	return 0;
-}
+	Matrix VP = View * Projection;
+	VP.Inverse();
+	Frustrum->Update(VP);
 
-int AIMCamera::Collision(float _Time)
-{
-	return 0;
-}
-
-int AIMCamera::PrevRender(float _Time)
-{
 	return 0;
 }
 
@@ -134,4 +147,14 @@ int AIMCamera::Render(float _Time)
 AIMCamera * AIMCamera::Clone() const
 {
 	return new AIMCamera(*this);
+}
+
+bool AIMCamera::FrustrumInPoint(const Vec3& _Pos)
+{
+	return Frustrum->FrustrumInPoint(_Pos);
+}
+
+bool AIMCamera::FrustrumInSphere(const Vec3& _Center, float _Radius)
+{
+	return Frustrum->FrustrumInSphere(_Center, _Radius);
 }

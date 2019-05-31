@@ -8,6 +8,7 @@
 #include "RenderManager.h"
 #include "AIMLight.h"
 #include "AIMAnimation.h"
+#include "AIMColliderSphere.h"
 
 AIMRenderer::AIMRenderer()
 {
@@ -37,6 +38,11 @@ void AIMRenderer::SetMesh(const std::string & _Key)
 	{
 		SetShader(Mesh->GetShaderName());
 		SetInputLayout(Mesh->GetInputLayoutName());
+
+		Ezptr<AIMColliderSphere> PickSphere = FindComponent<AIMColliderSphere>("PickSphere");
+
+		PickSphere->SetSphereInfo(Mesh->GetCenter(), Mesh->GetRadius());
+		PickSphere->PickEnable();
 	}
 
 	Transform->SetLocalRelativeView(Mesh->GetView());
@@ -52,6 +58,11 @@ void AIMRenderer::SetMesh(const std::string & _Key, const TCHAR * _FileName, con
 	{
 		SetShader(Mesh->GetShaderName());
 		SetInputLayout(Mesh->GetInputLayoutName());
+
+		Ezptr<AIMColliderSphere> PickSphere = FindComponent<AIMColliderSphere>("PickSphere");
+
+		PickSphere->SetSphereInfo(Mesh->GetCenter(), Mesh->GetRadius());
+		PickSphere->PickEnable();
 
 		Ezptr<AIMMaterial> TmpMaterial = Mesh->CloneMaterial();
 
@@ -84,6 +95,11 @@ void AIMRenderer::SetMeshFromFullPath(const std::string & _Key, const TCHAR * _F
 	{
 		SetShader(Mesh->GetShaderName());
 		SetInputLayout(Mesh->GetInputLayoutName());
+
+		Ezptr<AIMColliderSphere> PickSphere = FindComponent<AIMColliderSphere>("PickSphere");
+
+		PickSphere->SetSphereInfo(Mesh->GetCenter(), Mesh->GetRadius());
+		PickSphere->PickEnable();
 
 		Ezptr<AIMMaterial> TmpMaterial = Mesh->CloneMaterial();
 
@@ -130,6 +146,58 @@ void AIMRenderer::SetRenderState(const std::string & _Key)
 	RenderStateList[Type] = State;
 }
 
+void AIMRenderer::RenderInstancing(InstancingBuffer* _Buffer, Ezptr<AIMShader> _Shader, ID3D11InputLayout * _Layout, int _InstancingCount, float _Time)
+{
+	_Shader->SetShader();
+
+	GetAIMContext->IASetInputLayout(_Layout);
+
+	for (int i = 0; i < RS_END; i++)
+	{
+		if (RenderStateList[i] != nullptr)
+		{
+			RenderStateList[i]->SetState();
+		}
+	}
+
+	size_t Container = Mesh->GetContainerCount();
+
+	for (size_t AA = 0; AA < Container; AA++)
+	{
+		size_t Subset = Mesh->GetSubsetCount(AA);
+
+		if (Subset >0)
+		{
+			for (size_t BB = 0; BB < Subset; BB++)
+			{
+				if (Material != nullptr)
+				{
+					Material->SetShader(AA, BB);
+
+					Mesh->RenderInstancing(AA, BB, _Buffer, _InstancingCount);
+				}
+			}
+		}
+		else
+		{
+			if (Material != nullptr)
+			{
+				Material->SetShader(AA, 0);
+
+				Mesh->RenderInstancing(AA, 0, _Buffer, _InstancingCount);
+			}
+		}
+	}
+
+	for (int i = 0; i < RS_END; i++)
+	{
+		if (RenderStateList[i] != nullptr)
+		{
+			RenderStateList[i]->ResetState();
+		}
+	}
+}
+
 void AIMRenderer::Start()
 {
 	Material = FindComponent<AIMMaterial>(CT_MATERIAL);
@@ -137,6 +205,10 @@ void AIMRenderer::Start()
 
 bool AIMRenderer::Init()
 {
+	Ezptr<AIMColliderSphere> PickSphere = AddComponent<AIMColliderSphere>("PickSphere");
+
+	PickSphere->PickEnable();
+
 	return true;
 }
 

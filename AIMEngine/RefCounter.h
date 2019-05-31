@@ -32,6 +32,8 @@ public:
 	// false라면 업데이트 안함.
 	bool Enable = true;
 
+	unsigned int SerialNumber = UINT_MAX;
+
 protected:
 	unsigned int Count;
 
@@ -69,6 +71,15 @@ public:
 		Enable = _Value;
 	}
 
+	unsigned int GetSerialNumber() const
+	{
+		return SerialNumber;
+	}
+
+	void SetSerialNumber(unsigned int _Number)
+	{
+		SerialNumber = _Number;
+	}
 protected:
 	RefCounter();
 	RefCounter(const RefCounter& _Other);

@@ -23,6 +23,7 @@ cbuffer Particle : register(b10)
 }
 
 Texture2DArray FrameTex : register(t10);
+Texture2D GBufferDepth : register(t11);
 
 VS_In_Particle ParticleVS(VS_In_Particle _In)
 {
@@ -56,7 +57,7 @@ void ParticleGS(point VS_In_Particle _In[1], inout TriangleStream<GS_Out_Particl
     {
         Out.ProjPos = mul(float4(Pos[i], 1.0f), VP);
         Out.Pos = Out.ProjPos;
-        Out.UV = UV[i];
+        Out.UV = ComputeFrameUV(UV[i]);
 
         _Stream.Append(Out);
     }
@@ -67,7 +68,46 @@ PS_Out ParticlePS(GS_Out_Particle _In)
 {
     PS_Out Out = (PS_Out) 0.0f;
 
-    Out.Color = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    if(FrameAnimationType == AFT_ATLAS)
+    {
+        Out.Color = DiffuseTex.Sample(LinearSmp, _In.UV);
+        Out.Color = FrameTex.Sample(LinearSmp, float3(_In.UV, FrameAnimationFrame));
+    }
+    else
+    {
+        Out.Color = FrameTex.Sample(LinearSmp, float3(_In.UV, FrameAnimationFrame));
+    }
+
+    if (Out.Color.a == 0.0f)
+    {
+        clip(-1);
+    }
+
+    float2 DepthUV = _In.ProjPos.xy / _In.ProjPos.w;
+    DepthUV.x = DepthUV.x * 0.5f + 0.5f;
+    DepthUV.y = DepthUV.y * -0.5f + 0.5f;
+
+    float4 Depth = GBufferDepth.Sample(PointSmp, DepthUV);
+
+    float DepthDist = Depth.w - _In.ProjPos.w;
+
+    if (Depth.w == 0.0f)
+    {
+        DepthDist = 1.0f;
+    }
+    else if (DepthDist < 0.0f)
+    {
+        clip(-1);
+    }
+    else if (DepthDist == 0.0f)
+    {
+        DepthDist = 0.4f;
+    }
+
+    float Alpha = DepthDist / 0.4f;
+    Alpha = min(Alpha, 1.0f);
+
+    Out.Color.a *= Alpha;
 
     return Out;
 }

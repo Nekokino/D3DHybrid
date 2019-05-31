@@ -74,28 +74,28 @@
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D32</TargetName>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\;..\FMOD\inc\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)D64</TargetName>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\;..\FMOD\inc\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R32</TargetName>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\Bin\</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\;..\FMOD\inc\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\Bin\</OutDir>
     <TargetName>$(ProjectName)R64</TargetName>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\Bin\</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\FBX\include\;..\FMOD\inc\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AIMAnimation.h" />
+    <ClInclude Include="AIMArm.h" />
     <ClInclude Include="AIMCamera.h" />
     <ClInclude Include="AIMCollider.h" />
     <ClInclude Include="AIMColliderAABB.h" />
@@ -178,18 +179,27 @@
     <ClInclude Include="AIMColliderSphere.h" />
     <ClInclude Include="AIMComponent.h" />
     <ClInclude Include="AIMDevice.h" />
+    <ClInclude Include="AIMFrameAnimation.h" />
+    <ClInclude Include="AIMFrustrum.h" />
+    <ClInclude Include="AIMLandScape.h" />
     <ClInclude Include="AIMLayer.h" />
     <ClInclude Include="AIMLight.h" />
     <ClInclude Include="AIMMaterial.h" />
     <ClInclude Include="AIMMesh.h" />
+    <ClInclude Include="AIMNavigation.h" />
     <ClInclude Include="AIMObject.h" />
     <ClInclude Include="AIMParticle.h" />
     <ClInclude Include="AIMRenderer.h" />
     <ClInclude Include="AIMSampler.h" />
     <ClInclude Include="AIMScene.h" />
+    <ClInclude Include="AIMSerialNumber.h" />
     <ClInclude Include="AIMShader.h" />
+    <ClInclude Include="AIMSound.h" />
+    <ClInclude Include="AIMText.h" />
     <ClInclude Include="AIMTexture.h" />
     <ClInclude Include="AIMTransform.h" />
+    <ClInclude Include="AIMUI.h" />
+    <ClInclude Include="AIMUIButton.h" />
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="Core.h" />
@@ -198,9 +208,13 @@
     <ClInclude Include="EngineHeader.h" />
     <ClInclude Include="EngineMath.h" />
     <ClInclude Include="FbxLoader.h" />
+    <ClInclude Include="FontManager.h" />
+    <ClInclude Include="Heap.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Matrix.h" />
+    <ClInclude Include="NavigationManager.h" />
+    <ClInclude Include="NavigationMesh.h" />
     <ClInclude Include="PathManager.h" />
     <ClInclude Include="RasterizerState.h" />
     <ClInclude Include="RefStruct.h" />
@@ -212,6 +226,7 @@
     <ClInclude Include="RefCounter.h" />
     <ClInclude Include="RenderManager.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Struct.h" />
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="Timer.h" />
@@ -223,6 +238,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AIMAnimation.cpp" />
+    <ClCompile Include="AIMArm.cpp" />
     <ClCompile Include="AIMCamera.cpp" />
     <ClCompile Include="AIMCollider.cpp" />
     <ClCompile Include="AIMColliderAABB.cpp" />
@@ -233,25 +249,37 @@
     <ClCompile Include="AIMColliderSphere.cpp" />
     <ClCompile Include="AIMComponent.cpp" />
     <ClCompile Include="AIMDevice.cpp" />
+    <ClCompile Include="AIMFrameAnimation.cpp" />
+    <ClCompile Include="AIMFrustrum.cpp" />
+    <ClCompile Include="AIMLandScape.cpp" />
     <ClCompile Include="AIMLayer.cpp" />
     <ClCompile Include="AIMLight.cpp" />
     <ClCompile Include="AIMMaterial.cpp" />
     <ClCompile Include="AIMMesh.cpp" />
+    <ClCompile Include="AIMNavigation.cpp" />
     <ClCompile Include="AIMObject.cpp" />
     <ClCompile Include="AIMParticle.cpp" />
     <ClCompile Include="AIMRenderer.cpp" />
     <ClCompile Include="AIMSampler.cpp" />
     <ClCompile Include="AIMScene.cpp" />
+    <ClCompile Include="AIMSerialNumber.cpp" />
     <ClCompile Include="AIMShader.cpp" />
+    <ClCompile Include="AIMSound.cpp" />
+    <ClCompile Include="AIMText.cpp" />
     <ClCompile Include="AIMTexture.cpp" />
     <ClCompile Include="AIMTransform.cpp" />
+    <ClCompile Include="AIMUI.cpp" />
+    <ClCompile Include="AIMUIButton.cpp" />
     <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="DepthStencilState.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
+    <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Matrix.cpp" />
+    <ClCompile Include="NavigationManager.cpp" />
+    <ClCompile Include="NavigationMesh.cpp" />
     <ClCompile Include="PathManager.cpp" />
     <ClCompile Include="RasterizerState.cpp" />
     <ClCompile Include="RenderState.cpp" />
@@ -262,6 +290,7 @@
     <ClCompile Include="RefCounter.cpp" />
     <ClCompile Include="RenderManager.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UserComponent.cpp" />

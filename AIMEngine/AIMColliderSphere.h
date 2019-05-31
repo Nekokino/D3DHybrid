@@ -7,9 +7,11 @@ class Engine_DLL AIMColliderSphere : public AIMCollider
 private:
 	SphereInfo Relative;
 	SphereInfo Info;
+	bool ScaleEnable = true;
 
 public:
 	void SetSphereInfo(const Vec3& _Center, float _Radius);
+	void SetScaleEnable(bool _Enable);
 	SphereInfo GetInfo() const;
 
 public:

@@ -3,34 +3,114 @@
 #include "AIMTransform.h"
 #include "AIMScene.h"
 #include "AIMObject.h"
+#include "AIMMaterial.h"
 
 
 AIMParticle::AIMParticle()
 {
+	CT = CT_PARTICLE;
 }
 
 AIMParticle::AIMParticle(const AIMParticle & _Other) : AIMComponent(_Other)
 {
 	CBuffer = _Other.CBuffer;
+	Material = nullptr;
+	TextureName = _Other.TextureName;
 }
 
 
 AIMParticle::~AIMParticle()
 {
+	Material = nullptr;
 }
 
-bool AIMParticle::LoadTexture(const std::string & _Name, const std::vector<TCHAR*>& _FileNameVec, const std::string & _Path)
+bool AIMParticle::LoadTextureSet(const std::string & _Name, const TCHAR * _FileName, const std::string & _Path)
 {
+	if (Material == nullptr)
+	{
+		Material = Object->AddComponent<AIMMaterial>("ParticleMaterial");
+	}
+
+	if (TextureName.empty() == true)
+	{
+		Material->AddTextureSet(0, 0, 0, _Name, _FileName, _Path);
+	}
+	else
+	{
+		Material->ChangeTextureSet(0, 0, 0, TextureName, _Name, _FileName, _Path);
+	}
+
+	TextureName = _Name;
+
 	return true;
 }
 
-bool AIMParticle::LoadTexture(const std::string & _Name, const std::vector<TCHAR*>& _FullPathVec)
+bool AIMParticle::LoadTextureSetFromFullPath(const std::string & _Name, const TCHAR * _FullPath)
 {
+	if (Material == nullptr)
+	{
+		Material = Object->AddComponent<AIMMaterial>("ParticleMaterial");
+	}
+
+	if (TextureName.empty() == true)
+	{
+		Material->AddTextureSetFromFullPath(0, 0, 0, _Name, _FullPath);
+	}
+	else
+	{
+		Material->ChangeTextureSetFromFullPath(0, 0, 0, TextureName, _Name, _FullPath);
+	}
+
+	TextureName = _Name;
+
+	return true;
+}
+
+bool AIMParticle::LoadTextureSet(const std::string & _Name, const std::vector<TCHAR*>& _FileName, const std::string & _Path)
+{
+	if (Material == nullptr)
+	{
+		Material = Object->AddComponent<AIMMaterial>("ParticleMaterial");
+	}
+
+	if (TextureName.empty() == true)
+	{
+		Material->AddTextureSetArray(0, 0, 10, _Name, &_FileName, _Path);
+	}
+	else
+	{
+		Material->ChangeTextureSetArray(0, 0, 10, TextureName, _Name, &_FileName, _Path);
+	}
+
+	TextureName = _Name;
+
+	return true;
+}
+
+bool AIMParticle::LoadTextureSetFromFullPath(const std::string & _Name, const std::vector<TCHAR*>& _FullPath)
+{
+	if (Material == nullptr)
+	{
+		Material = Object->AddComponent<AIMMaterial>("ParticleMaterial");
+	}
+
+	if (TextureName.empty() == true)
+	{
+		Material->AddTextureSetArrayFromFullPath(0, 0, 10, _Name, &_FullPath);
+	}
+	else
+	{
+		Material->ChangeTextureSetArrayFromFullPath(0, 0, 10, TextureName, _Name, &_FullPath);
+	}
+
+	TextureName = _Name;
+
 	return true;
 }
 
 void AIMParticle::Start()
 {
+	Material = Object->FindComponent<AIMMaterial>(CT_MATERIAL);
 }
 
 bool AIMParticle::Init()

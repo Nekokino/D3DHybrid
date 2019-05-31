@@ -65,9 +65,15 @@ public:
 		return Object->FindComponent<T>(_Type);
 	}
 
+	template<typename T>
+	Ezptr<T> AddComponent(const std::string& _Name)
+	{
+		return Object->AddComponent<T>(_Name);
+	}
+
 protected:
 	AIMComponent();
 	AIMComponent(const AIMComponent& _Other);
-	virtual ~AIMComponent();
+	virtual ~AIMComponent() = 0;
 };
 

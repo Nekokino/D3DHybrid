@@ -63,7 +63,7 @@ public:
 	float EndTime = 0.0f;
 	float TimeLength = 0.0f;
 	float FrameTime = 0.0f;
-	float PlayTime = 0.0f;
+	float PlayTime = 10.0f;
 	int StartFrame = 0;
 	int EndFrame = 0;
 	int FrameLength = 0;

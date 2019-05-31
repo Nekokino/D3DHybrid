@@ -54,6 +54,7 @@ public:
 	IDXGISwapChain* GetSwapChain();
 	Resolution GetResolution();
 	ID2D1RenderTarget* Get2DRenderTarget();
+	Vec2 GetWindowToViewportRatio() const;
 
 public:
 	bool Init(HWND _hWnd, unsigned int _Width, unsigned int _Height, bool _WindowMode = true);

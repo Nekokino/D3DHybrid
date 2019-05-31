@@ -21,10 +21,12 @@
   <ItemGroup>
     <FxCompile Include="..\Bin\Shader\Collider.fx" />
     <FxCompile Include="..\Bin\Shader\Debug.fx" />
+    <FxCompile Include="..\Bin\Shader\LandScape.fx" />
     <FxCompile Include="..\Bin\Shader\Light.fx" />
     <FxCompile Include="..\Bin\Shader\Particle.fx" />
     <FxCompile Include="..\Bin\Shader\ShaderStruct.fx" />
     <FxCompile Include="..\Bin\Shader\Standard.fx" />
+    <FxCompile Include="..\Bin\Shader\UI.fx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2FFB9984-3171-4FC8-8D3A-CF37A6B533BC}</ProjectGuid>

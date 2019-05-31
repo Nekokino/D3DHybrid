@@ -43,11 +43,14 @@ public:
 	void SetEmissiveColor(int _Container, int _Subset, float _Emv);
 
 	void AddTextureSet(int _Container, int _Subset, int _TexReg, const std::string& _TexName, const TCHAR* _FileName = nullptr, const std::string& _Path = "Texture");
+	void AddTextureSet(int _Container, int _Subset, int _TexReg, Ezptr<AIMTexture> _Texture);
 	void AddTextureSetFromFullPath(int _Container, int _Subset, int _TexReg, const std::string& _TexName, const TCHAR* _FullPath = nullptr);
 	void AddTextureSetArray(int _Container, int _Subset, int _TexReg, const std::string& _TexName, const std::vector<TCHAR*>* _FileNameVec = nullptr, const std::string& _Path = "Texture");
 	void AddTextureSetArrayFromFullPath(int _Container, int _Subset, int _TexReg, const std::string& _TexName, const std::vector<TCHAR*>* _FullPathVec = nullptr);
 	void DeleteTextureSet(int _Container, int _Subset, const std::string& _Name);
+	void DeleteTextureSet(int _Container, int _Subset);
 	void ChangeTextureSet(int _Container, int _Subset, int _TexReg, const std::string& _Name, const std::string& _ChangeName, const TCHAR* _FileName = nullptr, const std::string& _Path = "Texture");
+	void ChangeTextureSet(int _Container, int _Subset, int _TexReg, const std::string& _Name, Ezptr<AIMTexture> _Texture);
 	void ChangeTextureSetFromFullPath(int _Container, int _Subset, int _TexReg, const std::string& _Name, const std::string& _ChangeName, const TCHAR* _FullPath = nullptr);
 	void ChangeTextureSetArray(int _Container, int _Subset, int _TexReg, const std::string& _Name, const std::string& _ChangeName, const std::vector<TCHAR*>* _FileNameVec = nullptr, const std::string& _PathName = "Texture");
 	void ChangeTextureSetArrayFromFullPath(int _Container, int _Subset, int _TexReg, const std::string& _Name, const std::string& _ChangeName, const std::vector<TCHAR*>* _FullPathVec = nullptr);

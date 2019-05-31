@@ -21,7 +21,8 @@ cbuffer Debug : register(b9)
 }
 
 Texture2D DiffuseTex : register(t0);
-SamplerState DiffuseSmp : register(s0);
+SamplerState LinearSmp : register(s0);
+SamplerState PointSmp : register(s1);
 
 VS_Out_UV DebugVS(VS_In_UV _In)
 {

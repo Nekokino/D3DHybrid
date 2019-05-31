@@ -5,6 +5,18 @@ class Engine_DLL AIMColliderRay : public AIMCollider
 {
 	friend class AIMObject;
 
+private:
+	RayInfo Relative;
+	RayInfo Info;
+	bool Mouse = false;
+
+public:
+	void MouseEnable();
+	RayInfo GetInfo() const
+	{
+		return Info;
+	}
+
 public:
 	virtual void Start();
 	virtual bool Init();

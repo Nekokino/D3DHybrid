@@ -19,6 +19,9 @@ private:
 	Ezptr<AIMObject> MainCameraObj;
 	Ezptr<AIMCamera> MainCamera;
 	Ezptr<AIMTransform> MainCameraTransform;
+	Ezptr<AIMObject> UICameraObj;
+	Ezptr<AIMCamera> UICamera;
+	Ezptr<AIMTransform> UICameraTransform;
 
 	Ezptr<AIMObject> Sky;
 
@@ -26,6 +29,15 @@ public:
 	Ezptr<AIMObject> GetMainCameraObj() const;
 	Ezptr<AIMCamera> GetMainCamera() const;
 	Ezptr<AIMTransform> GetMainCameraTransform() const;
+	Ezptr<AIMObject> GetUICameraObj() const;
+	Ezptr<AIMCamera> GetUICamera() const;
+	Ezptr<AIMTransform> GetUICameraTransform() const;
+	Matrix GetViewMatrix() const;
+	Matrix GetProjectionMatrix() const;
+	Vec3 GetMainCameraPos() const;
+	Matrix GetUICamViewMatrix() const;
+	Matrix GetUICamProjectionMatrix() const;
+	Vec3 GetUICameraPos() const;
 
 public:
 	bool Init();

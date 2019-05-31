@@ -76,6 +76,34 @@ struct VS_Out_3D
     float4 ProjPos : POSITION1;
 };
 
+struct VS_In_3DInstancing
+{
+    float3 Pos : POSITION;
+    float3 Normal : NORMAL;
+    float2 UV : TEXCOORD;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
+    float4 Weights : BLENDWEIGHTS;
+    float4 Indices : BLENDINDICES;
+    matrix WVP : WORLD;
+    matrix WV : WORLDVIEW;
+    matrix WVRot : WORLDVIEWROT;
+};
+
+struct VS_Out_3DInstancing
+{
+    float4 Pos : SV_POSITION;
+    float3 Normal : NORMAL;
+    float2 UV : TEXCOORD;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
+    float3 ViewPos : POSITION;
+    float4 ProjPos : POSITION1;
+    matrix WVP : WORLD;
+    matrix WV : WORLDVIEW;
+    matrix WVRot : WORLDVIEWROT;
+};
+
 struct VS_In_Pos
 {
     float3 Pos : POSITION;
@@ -160,6 +188,20 @@ struct LightInfo
 
 #define RENDER_FORWARD 0
 #define REDNER_DEFERRED 1
+
+#define AFT_ATLAS 0
+#define AFT_FRAME 1
+
+cbuffer FrameAnimation : register(b8)
+{
+    int FrameAnimationType;
+    int FrameAnimationOption;
+    float2 FrameAnimationTextureSize;
+    float2 FrameAnimationStart;
+    float2 FrameAnimationEnd;
+    int FrameAnimationFrame;
+    float3 FrameAnimationDummy;
+}
 
 LightInfo ComputeLight(float3 _ViewPos, float3 _ViewNormal)
 {
@@ -397,4 +439,32 @@ _tagSkinning Skinning(float3 _Pos, float3 _Normal, float4 _Weights, float4 _Indi
 
     return Tmp;
 
+}
+
+float2 ComputeFrameUV(float2 _UV)
+{
+    float2 Result = _UV;
+
+    if (FrameAnimationType == AFT_ATLAS)
+    {
+        if (_UV.x == 0.0f)
+        {
+            Result.x = FrameAnimationStart.x / FrameAnimationTextureSize.x;
+        }
+        else
+        {
+            Result.x = FrameAnimationEnd.x / FrameAnimationTextureSize.x;
+        }
+
+        if (_UV.y == 0.0f)
+        {
+            Result.y = FrameAnimationStart.y / FrameAnimationTextureSize.y;
+        }
+        else
+        {
+            Result.y = FrameAnimationEnd.y / FrameAnimationTextureSize.y;
+        }
+    }
+
+    return Result;
 }

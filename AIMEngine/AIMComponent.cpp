@@ -105,7 +105,7 @@ int AIMComponent::Render(float _Time)
 
 AIMComponent* AIMComponent::Clone() const
 {
-	return new AIMComponent(*this);
+	return nullptr;
 }
 
 void AIMComponent::EraseComponent(const std::string & _Name)

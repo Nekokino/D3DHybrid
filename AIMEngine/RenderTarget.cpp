@@ -69,7 +69,7 @@ RenderTarget::~RenderTarget()
 	}
 }
 
-bool RenderTarget::CreateRenderTarget(const std::string & _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], DXGI_FORMAT _DepthFormat)
+bool RenderTarget::CreateRenderTarget(const std::string & _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], int _SampleCount, DXGI_FORMAT _DepthFormat)
 {
 	Name = _Name;
 

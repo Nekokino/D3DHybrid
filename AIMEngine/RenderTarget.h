@@ -42,7 +42,7 @@ private:
 	ID3D11InputLayout* Layout = nullptr;
 
 public:
-	bool CreateRenderTarget(const std::string& _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], DXGI_FORMAT _DepthFormat = DXGI_FORMAT_UNKNOWN);
+	bool CreateRenderTarget(const std::string& _Name, UINT _Width, UINT _Height, DXGI_FORMAT _Format, float _ClearColor[4], int _SampleCount =  1, DXGI_FORMAT _DepthFormat = DXGI_FORMAT_UNKNOWN);
 
 	void OnDebug(const Vec3& _Pos, const Vec3& _Scale, bool _Debug = true);
 	void ClearTarget();

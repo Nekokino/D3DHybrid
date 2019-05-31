@@ -25,7 +25,7 @@ LocalScale(_Other.LocalScale), LocalRotation(_Other.LocalRotation), LocalPositio
 LocalView(_Other.LocalView), LocalScaleMat(_Other.LocalScaleMat), LocalRotationMat(_Other.LocalRotationMat), LocalMat(_Other.LocalMat), LocalPositionMat(_Other.LocalPositionMat),
 WorldScale(_Other.WorldScale), WorldRotation(_Other.WorldRotation), WorldPosition(_Other.WorldPosition), WorldView(_Other.WorldView),
 LookAtTransform(_Other.LookAtTransform), LookAtAxis(_Other.LookAtAxis), WorldScaleMat(_Other.WorldScaleMat), WorldRotationMat(_Other.WorldRotationMat),
-WorldPositionMat(_Other.WorldPositionMat), WorldParentMat(_Other.WorldParentMat), WorldMat(_Other.WorldMat),
+WorldPositionMat(_Other.WorldPositionMat), WorldParentMat(_Other.WorldParentMat), WorldMat(_Other.WorldMat), bUI(_Other.bUI),
 AIMComponent(_Other)
 {
 	for (int i = 0; i < AXIS_END; i++)
@@ -126,6 +126,7 @@ void AIMTransform::SetWorldPosition(float _x, float _y, float _z)
 
 void AIMTransform::SetWorldPosition(const Vec3 & _Position)
 {
+	MoveVec += _Position - WorldPosition;
 	WorldPosition = _Position;
 
 	WorldPositionMat.Translation(WorldPosition);
@@ -290,10 +291,19 @@ int AIMTransform::Collision(float _Time)
 
 int AIMTransform::PrevRender(float _Time)
 {
-	if (true == bUpdate)
-	{
-		Ezptr<AIMCamera> Cam = Scene->GetMainCamera();
+	Ezptr<AIMCamera> Cam;
 
+	if (bUI == true)
+	{
+		Cam = Scene->GetUICamera();
+	}
+	else
+	{
+		Cam = Scene->GetMainCamera();
+	}
+
+	if (true == bUpdate || Cam->GetUpdate() == true)
+	{
 		ConstBuffer.WorldRotation = LocalRotationMat * WorldRotationMat;
 		ConstBuffer.WVRotation = ConstBuffer.WorldRotation * Cam->GetView();
 		ConstBuffer.World = LocalMat * WorldMat;
@@ -314,8 +324,6 @@ int AIMTransform::PrevRender(float _Time)
 		ConstBuffer.WV.Transpose();
 		ConstBuffer.WVP.Transpose();
 		ConstBuffer.VP.Transpose();
-
-		bUpdate = false;
 	}
 
 	ShaderManager::UpdateConstBuffer("Transform", &ConstBuffer);
@@ -325,12 +333,27 @@ int AIMTransform::PrevRender(float _Time)
 
 int AIMTransform::Render(float _Time)
 {
+	MoveVec = Vec3::Zero;
+
+	bUpdate = false;
+
 	return 0;
 }
 
 void AIMTransform::Move(Axis _Axis, float _Speed, float _Time)
 {
+	MoveVec += WorldAxis[_Axis] * _Speed * _Time;
 	WorldPosition += WorldAxis[_Axis] * _Speed * _Time;
+
+	WorldPositionMat.Translation(WorldPosition);
+
+	bUpdate = true;
+}
+
+void AIMTransform::MoveBack()
+{
+	WorldPosition -= MoveVec;
+	MoveVec = Vec3::Zero;
 
 	WorldPositionMat.Translation(WorldPosition);
 
@@ -355,9 +378,108 @@ void AIMTransform::SetLocalRelativeView(const Vec3 & _View)
 
 void AIMTransform::Move(const Vec3 & _Dir, float _Speed, float _Time)
 {
+	MoveVec += _Dir * _Speed * _Time;
 	WorldPosition += _Dir * _Speed * _Time;
 
 	WorldPositionMat.Translation(WorldPosition);
+
+	bUpdate = true;
+}
+
+void AIMTransform::Move(const Vec3& _Move)
+{
+	MoveVec += _Move;
+	WorldPosition += _Move;
+
+	WorldPositionMat.Translation(WorldPosition);
+
+	bUpdate = true;
+}
+
+void AIMTransform::Rotation(const Vec3& _Rot, float _Time)
+{
+	WorldRotation += _Rot * _Time;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::Rotation(const Vec3& _Rot)
+{
+	WorldRotation += _Rot;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationX(float _Speed, float _Time)
+{
+	WorldRotation.x += _Speed * _Time;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationX(float _Speed)
+{
+	WorldRotation.x += _Speed;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationY(float _Speed, float _Time)
+{
+	WorldRotation.y += _Speed * _Time;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationY(float _Speed)
+{
+	WorldRotation.y += _Speed;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationZ(float _Speed, float _Time)
+{
+	WorldRotation.z += _Speed * _Time;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
+
+	bUpdate = true;
+}
+
+void AIMTransform::RotationZ(float _Speed)
+{
+	WorldRotation.z += _Speed;
+
+	WorldRotationMat.Rotation(WorldRotation);
+
+	ComputeAxis();
 
 	bUpdate = true;
 }
@@ -448,4 +570,9 @@ void AIMTransform::ComputeAxis()
 
 	WorldView = LocalView.TransformNormal(WorldRotationMat);
 	WorldView.Normalize();
+}
+
+void AIMTransform::UIEnable()
+{
+	bUI = true;
 }

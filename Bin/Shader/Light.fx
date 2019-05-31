@@ -70,7 +70,7 @@ PS_Out_LightAcc LightAccPS(VS_Out_UV _In)
 {
     PS_Out_LightAcc Out = (PS_Out_LightAcc) 0.0f;
 
-    float4 Depth = GBufferDepth.Sample(PointSmp, _In.UV);
+    float4 Depth = GBufferDepth.Sample(LinearSmp, _In.UV);
 
     if (Depth.w == 0.0f)
     {
@@ -109,9 +109,9 @@ PS_Out LightBlendPS(VS_Out_UV _In)
 {
     PS_Out Out = (PS_Out) 0.0f;
 
-    float4 Albedo = GBufferAlbedo.Sample(PointSmp, _In.UV);
-    float4 Dif = LightDiffuse.Sample(PointSmp, _In.UV);
-    float4 Spc = LightSpecular.Sample(PointSmp, _In.UV);
+    float4 Albedo = GBufferAlbedo.Sample(LinearSmp, _In.UV);
+    float4 Dif = LightDiffuse.Sample(LinearSmp, _In.UV);
+    float4 Spc = LightSpecular.Sample(LinearSmp, _In.UV);
 
     if(Albedo.a == 0.0f)
         clip(-1);
@@ -126,7 +126,8 @@ PS_Out LightBlendRenderPS(VS_Out_UV _In)
 {
     PS_Out Out = (PS_Out) 0.0f;
 
-    Out.Color = DiffuseTex.Sample(PointSmp, _In.UV);
+    Out.Color = DiffuseTex.Sample(LinearSmp, _In.UV);
+
 
     return Out;
 }

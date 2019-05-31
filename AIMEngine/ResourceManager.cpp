@@ -2,6 +2,7 @@
 #include "AIMMesh.h"
 #include "AIMTexture.h"
 #include "AIMSampler.h"
+#include "AIMSerialNumber.h"
 
 std::unordered_map<std::string, Ezptr<AIMMesh>> ResourceManager::MeshMap;
 std::unordered_map<std::string, Ezptr<AIMTexture>> ResourceManager::TextureMap;
@@ -9,9 +10,15 @@ std::unordered_map<std::string, Ezptr<AIMSampler>> ResourceManager::SamplerMap;
 std::vector<Vertex3D> ResourceManager::SphereVtxVec;
 std::vector<UINT> ResourceManager::SphereIdxVec;
 
+AIMSerialNumber* ResourceManager::SerialNumber;
+AIMSerialNumber* ResourceManager::TexSerialNumber;
+
 
 bool ResourceManager::Init()
 {
+	SerialNumber = new AIMSerialNumber;
+	TexSerialNumber = new AIMSerialNumber;
+
 	CreateSphere(1.0f, 5);
 
 	Vec3 PyramidPos[5] =
@@ -160,6 +167,18 @@ void ResourceManager::Release()
 	MeshMap.clear();
 	TextureMap.clear();
 	SamplerMap.clear();
+
+	if (SerialNumber != nullptr)
+	{
+		delete SerialNumber;
+		SerialNumber = nullptr;
+	}
+
+	if (TexSerialNumber != nullptr)
+	{
+		delete TexSerialNumber;
+		TexSerialNumber = nullptr;
+	}
 }
 
 bool ResourceManager::CreateMesh(const std::string & _Name, const std::string& _ShaderName, const std::string& _InputLayoutName, const Vec3& _View, int _VtxSize, int _VtxCount, D3D11_USAGE _VtxUsage, D3D11_PRIMITIVE_TOPOLOGY _Primitive, void * _Vtx, int _IdxSize, int _IdxCount, D3D11_USAGE _IdxUsage, DXGI_FORMAT _Format, void * _Idx)
@@ -183,6 +202,7 @@ bool ResourceManager::CreateMesh(const std::string & _Name, const std::string& _
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
 	Mesh->SetView(_View);
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	return true;
 }
@@ -214,6 +234,7 @@ bool ResourceManager::CreateSpherePos(const std::string & _Name, const std::stri
 	}
 
 	Mesh->SetView(Vec3(0.0f, 0.0f, 1.0f));
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
@@ -226,7 +247,6 @@ bool ResourceManager::LoadMesh(const std::string & _Name, const TCHAR * _FileNam
 
 	if (Mesh != nullptr)
 	{
-		tassertmsg(true, "Overlapped Mesh Name");
 		return false;
 	}
 
@@ -237,6 +257,7 @@ bool ResourceManager::LoadMesh(const std::string & _Name, const TCHAR * _FileNam
 		tassertmsg(true, "Failed To Load Mesh");
 		return false;
 	}
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
@@ -260,6 +281,7 @@ bool ResourceManager::LoadMesh(const std::string & _Name, const char * _FileName
 		tassertmsg(true, "Failed To Load Mesh");
 		return false;
 	}
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
@@ -283,6 +305,7 @@ bool ResourceManager::LoadMeshFromFullPath(const std::string & _Name, const TCHA
 		tassertmsg(true, "Failed To Load Mesh");
 		return false;
 	}
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
@@ -306,6 +329,7 @@ bool ResourceManager::LoadMeshFromFullPath(const std::string & _Name, const char
 		tassertmsg(true, "Failed To Load Mesh");
 		return false;
 	}
+	Mesh->SetSerialNumber(SerialNumber->GetSerialNumber());
 
 	MeshMap.insert(std::unordered_map<std::string, Ezptr<AIMMesh>>::value_type(_Name, Mesh));
 
@@ -320,6 +344,7 @@ bool ResourceManager::DeleteMesh(const std::string & _Name)
 	{
 		return false;
 	}
+	SerialNumber->AddValidNumber(iter->second->GetSerialNumber());
 
 	MeshMap.erase(iter);
 
@@ -344,7 +369,6 @@ bool ResourceManager::LoadTexture(const std::string & _Name, const TCHAR * _File
 
 	if (Tex != nullptr)
 	{
-		tassertmsg(true, "Overlapped Texture Create");
 		return false;
 	}
 
@@ -354,6 +378,7 @@ bool ResourceManager::LoadTexture(const std::string & _Name, const TCHAR * _File
 	{
 		return false;
 	}
+	Tex->SetSerialNumber(TexSerialNumber->GetSerialNumber());
 
 	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Tex));
 
@@ -378,11 +403,13 @@ bool ResourceManager::LoadTextureFromFullPath(const std::string & _Name, const T
 		return false;
 	}
 
+	Texture->SetSerialNumber(TexSerialNumber->GetSerialNumber());
+
 	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
 
 	return true;
 }
-
+	
 bool ResourceManager::LoadTexture(const std::string & _Name, const std::vector<TCHAR*>& _FileNameVec, const std::string & _Path)
 {
 	Ezptr<AIMTexture> Texture = FindTexture(_Name);
@@ -398,6 +425,7 @@ bool ResourceManager::LoadTexture(const std::string & _Name, const std::vector<T
 	{
 		return false;
 	}
+	Texture->SetSerialNumber(TexSerialNumber->GetSerialNumber());
 
 	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
 
@@ -419,8 +447,27 @@ bool ResourceManager::LoadTextureFromFullPath(const std::string & _Name, const s
 	{
 		return false;
 	}
+	Texture->SetSerialNumber(TexSerialNumber->GetSerialNumber());
 
 	TextureMap.insert(std::unordered_map<std::string, Ezptr<AIMTexture>>::value_type(_Name, Texture));
+
+	return true;
+}
+
+bool ResourceManager::DeleteTexture(const std::string & _Name)
+{
+	Ezptr<AIMTexture> Texture = FindTexture(_Name);
+
+	if (Texture == nullptr)
+	{
+		
+		return false;
+	}
+
+	TexSerialNumber->AddValidNumber(Texture->GetSerialNumber());
+	TextureMap.erase(_Name);
+
+	return true;
 }
 
 Ezptr<AIMTexture> ResourceManager::FindTexture(const std::string & _Name)

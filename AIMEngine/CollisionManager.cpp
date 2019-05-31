@@ -1,5 +1,10 @@
 #include "CollisionManager.h"
 #include "AIMObject.h"
+#include "InputManager.h"
+#include "AIMColliderRay.h"
+#include "Core.h"
+#include "SceneManager.h"
+#include <algorithm>
 
 ColliderInfo CollisionManager::ColInfo;
 unsigned int CollisionManager::SerialNumber = 0;
@@ -14,6 +19,12 @@ unsigned int CollisionManager::ChannelSize = 0;
 unsigned int* CollisionManager::ValidNumber = nullptr;
 unsigned int CollisionManager::ValidSize = 0;
 unsigned int CollisionManager::ValidCapacity = 100;
+Ezptr<AIMCollider> CollisionManager::PrevMousePick;
+Ezptr<AIMCollider> CollisionManager::PrevMouseCollider;
+
+CollisionSection* CollisionManager::PickSection;
+CollisionSection* CollisionManager::UISection;
+ColliderList* CollisionManager::MouseCollisionList;
 
 
 bool CollisionManager::Init()
@@ -22,6 +33,8 @@ bool CollisionManager::Init()
 	ChannelList = new CollisionChannel[MAX_COL_CHANNEL];
 	ValidNumber = new unsigned int[ValidCapacity];
 	memset(ValidNumber, 0, sizeof(unsigned int) * ValidCapacity);
+
+	MouseCollisionList = new ColliderList;
 
 	CreateSection(5, 5, 5, Vec3(30.0f, 30.0f, 30.0f));
 
@@ -42,6 +55,15 @@ bool CollisionManager::Init()
 
 void CollisionManager::Release()
 {
+	PrevMousePick = nullptr;
+	PrevMouseCollider = nullptr;
+
+	if (MouseCollisionList != nullptr)
+	{
+		delete MouseCollisionList;
+		MouseCollisionList = nullptr;
+	}
+
 	if (Section != nullptr)
 	{
 		delete Section;
@@ -64,138 +86,39 @@ void CollisionManager::Release()
 		delete[] ValidNumber;
 		ValidNumber = nullptr;
 	}
+
+	if (PickSection != nullptr)
+	{
+		delete PickSection;
+		PickSection = nullptr;
+	}
+
+	if (UISection != nullptr)
+	{
+		delete UISection;
+		UISection = nullptr;
+	}
 }
 
 void CollisionManager::Collision(float _Time)
 {
 	ComputeSection();
 
-	for (unsigned int z = 0; z < Section->NumZ; z++)
+	bool TmpCol = CollisionMouseUI(_Time);
+
+	if (TmpCol == false)
 	{
-		for (unsigned int y = 0; y < Section->NumY; y++)
+		CollisionMouseWorld(_Time);
+	}
+
+	CollisionUI(_Time);
+	CollisionWorld(_Time);
+
+	if (PickSection != nullptr)
+	{
+		for (int i = 0; i < PickSection->NumX * PickSection->NumY * PickSection->NumZ; i++)
 		{
-			for (unsigned int x = 0; x < Section->NumX; x++)
-			{
-				unsigned int Idx = z * (Section->NumX * Section->NumY) + y * Section->NumX + x;
-
-				ColliderList* TmpSection = &Section->SectionList[Idx];
-
-				if (TmpSection->Size <= 1)
-				{
-					continue;
-				}
-
-				for (unsigned int AA = 0; AA < TmpSection->Size - 1; AA++)
-				{
-					Ezptr<AIMCollider> Src = TmpSection->List[AA];
-
-					for (unsigned int BB = AA + 1; BB < TmpSection->Size; BB++)
-					{
-						Ezptr<AIMCollider> Dest = TmpSection->List[BB];
-
-						if (Src->CheckCollisionList(Dest->GetSerialNumber()) == true)
-						{
-							continue;
-						}
-
-						CollisionProfile* SrcProfile = Src->GetCollisionProfile();
-						CollisionProfile* DestProfile = Dest->GetCollisionProfile();
-
-						CollisionChannel* SrcChannel = &SrcProfile->ChannelList[Dest->GetCollisionChannelIndex()];
-						CollisionChannel* DestChannel = &DestProfile->ChannelList[Src->GetCollisionChannelIndex()];
-
-						if (SrcChannel->State != CCS_IGNORE || DestChannel->State != CCS_IGNORE)
-						{
-							if (Src->Collision(Dest) == true)
-							{
-								// 이전 영역에서 충돌 되었을시
-								// 충돌의 중복을 피하기 위해서
-								// 동일 프레임에서 충돌되었다고 표시를 해준다
-
-								Src->AddCollisionList(Dest->GetSerialNumber());
-								Dest->AddCollisionList(Src->GetSerialNumber());
-
-								// 이전 충돌 판단
-								if (CheckPrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber()) == false)
-								{
-									// 최초충돌이므로 등록함
-									AddPrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber());
-
-									// 각 충돌체에도 등록함
-									Src->AddSerialNumber(Dest->GetSerialNumber());
-									Dest->AddSerialNumber(Src->GetSerialNumber());
-
-									// 최초중돌 콜백
-									if (SrcChannel->State != CCS_IGNORE)
-									{
-										Src->Call(CCS_BEGIN, Dest, _Time);
-									}
-
-									if (DestChannel->State != CCS_IGNORE)
-									{
-										Dest->Call(CCS_BEGIN, Src, _Time);
-									}
-								}
-								else
-								{
-									if (SrcChannel->State != CCS_IGNORE)
-									{
-										Src->Call(CCS_STAY, Dest, _Time);
-									}
-
-									if (DestChannel->State != CCS_IGNORE)
-									{
-										Dest->Call(CCS_STAY, Src, _Time);
-									}
-								}
-							}
-							// 충돌 안함
-							else
-							{
-								if (CheckPrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber()) == true)
-								{
-									DeletePrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber());
-
-									Src->DeleteSerialNumber(Dest->GetSerialNumber());
-									Dest->DeleteSerialNumber(Src->GetSerialNumber());
-
-									if (SrcChannel->State != CCS_IGNORE)
-									{
-										Src->Call(CCS_LEAVE, Dest, _Time);
-									}
-
-									if (DestChannel->State != CCS_IGNORE)
-									{
-										Dest->Call(CCS_LEAVE, Src, _Time);
-									}
-								}
-							}
-						}
-						else
-						{
-							if (CheckPrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber()) == true)
-							{
-								DeletePrevCollider(Src->GetSerialNumber(), Dest->GetSerialNumber());
-
-								Src->DeleteSerialNumber(Dest->GetSerialNumber());
-								Dest->DeleteSerialNumber(Src->GetSerialNumber());
-
-								if (SrcChannel->State != CCS_IGNORE)
-								{
-									Src->Call(CCS_LEAVE, Dest, _Time);
-								}
-
-								if (DestChannel->State != CCS_IGNORE)
-								{
-									Dest->Call(CCS_LEAVE, Src, _Time);
-								}
-							}
-						}
-					}
-				}
-
-				TmpSection->Size = 0;
-			}
+			PickSection->SectionList[i].Clear();
 		}
 	}
 }
@@ -204,7 +127,7 @@ void CollisionManager::Render(float _Time)
 {
 	for (unsigned int i = 0; i < ColInfo.Size + ValidSize;)
 	{
-		Ezptr<AIMCollider> Collider = ColInfo.ColliderList[i];
+		AIMCollider* Collider = ColInfo.ColliderList[i];
 
 		if (Collider == nullptr)
 		{
@@ -249,6 +172,11 @@ unsigned int CollisionManager::GetSerialNumber()
 
 void CollisionManager::AddValidSerialNumber(unsigned int _Number)
 {
+	if (ValidNumber == nullptr)
+	{
+		return;
+	}
+
 	if (ValidSize == ValidCapacity)
 	{
 		ValidCapacity *= 2;
@@ -358,6 +286,27 @@ void CollisionManager::CreateSection(int _NumX, int _NumY, int _NumZ, const Vec3
 
 	Section->Min = Pos - Pivot * Section->Length;
 	Section->Max = Pos + (Vec3(1.0f, 1.0f, 1.0f) - Pivot) * Section->Length;
+
+	if (Core::Inst()->GetEditMode() == true)
+	{
+		if (PickSection != nullptr)
+		{
+			delete PickSection;
+			PickSection = nullptr;
+		}
+
+		PickSection = new CollisionSection;
+
+		PickSection->NumX = _NumX;
+		PickSection->NumY = _NumY;
+		PickSection->NumZ = _NumZ;
+		PickSection->CellSize = _CellSize;
+
+		PickSection->SectionList = new ColliderList[_NumX * _NumY * _NumZ];
+		PickSection->Length = PickSection->CellSize * Vec3(_NumX, _NumY, _NumZ);
+		PickSection->Min = _Pos - _Pivot * PickSection->Length;
+		PickSection->Max = _Pos + (Vec3(1.0f, 1.0f, 1.0f) - _Pivot) * PickSection->Length;
+	}
 
 }
 
@@ -537,6 +486,11 @@ void CollisionManager::AddCollider(Ezptr<AIMObject> _Obj)
 			Collider->ClearState();
 			continue;
 		}
+		else if (Collider->GetPickEnable() == true)
+		{
+			Collider->ClearState();
+			continue;
+		}
 
 		// 충돌체의 MinMax를 가져온다
 		Vec3 ColMin = Collider->GetSectionMin();
@@ -656,35 +610,33 @@ void CollisionManager::DeleteCollider(unsigned int _SerialNumber)
 
 void CollisionManager::ComputeSection()
 {
-	for (unsigned int Coll = 0; Coll < ColInfo.Size + ValidSize; Coll++)
+	for (unsigned int Col = 0; Col < ColInfo.Size + ValidSize; ++Col)
 	{
-		Ezptr<AIMCollider> Collider = ColInfo.ColliderList[Coll];
+		AIMCollider* TmpCollider = ColInfo.ColliderList[Col];
 
-		if (Collider == nullptr)
+		if (false == TmpCollider)
+			continue;
+
+		if (false == TmpCollider->IsEnable() || false == TmpCollider->IsObjectEnable())
 		{
+			TmpCollider->ClearState();
 			continue;
 		}
 
-		if (Collider->IsEnable() == false || Collider->IsObjectEnable() == false)
-		{
-			Collider->ClearState();
-			continue;
-		}
+		// 충돌체의 Min, Max 값을 얻어온다.
+		Vec3 ColMin = TmpCollider->GetSectionMin();
+		Vec3 ColMax = TmpCollider->GetSectionMax();
 
-		// 충돌체의 MinMax를 가져온다
-		Vec3 ColMin = Collider->GetSectionMin();
-		Vec3 ColMax = Collider->GetSectionMax();
-
-		// 섹션의 Min값을 빼서 공간보정.
+		// 전체 영역의 Min값을 제거해서 0, 0, 0으로 만들어준다.
 		ColMin -= Section->Min;
 		ColMax -= Section->Min;
 
-		// 공간변환
+		// 1, 1, 1 공간으로 변환한다.
 		ColMin /= Section->CellSize;
 		ColMax /= Section->CellSize;
 
-		int StartX = -1, StartY = -1, StartZ = -1;
-		int EndX = -1, EndY = -1, EndZ = -1;
+		int	StartX = -1, StartY = -1, StartZ = -1;
+		int	EndX = -1, EndY = -1, EndZ = -1;
 
 		StartX = (int)ColMin.x;
 		StartY = (int)ColMin.y;
@@ -694,97 +646,536 @@ void CollisionManager::ComputeSection()
 		EndY = (int)ColMax.y;
 		EndZ = (int)ColMax.z;
 
-		// 공간 밖에있는지 체크
-		if (StartX >= Section->NumX)
+		if (StartX >= Section->NumX || StartY >= Section->NumY ||
+			StartZ >= Section->NumZ || EndX < 0 || EndY < 0 ||
+			EndZ < 0)
 		{
-			Collider->ClearState();
-			continue;
-		}
-		else if (StartY >= Section->NumY)
-		{
-			Collider->ClearState();
-			continue;
-		}
-		else if (StartZ >= Section->NumZ)
-		{
-			Collider->ClearState();
-			continue;
-		}
-		else if (EndX< 0)
-		{
-			Collider->ClearState();
-			continue;
-		}
-		else if (EndY <0)
-		{
-			Collider->ClearState();
-			continue;
-		}
-		else if (EndZ < 0)
-		{
-			Collider->ClearState();
+			TmpCollider->ClearState();
 			continue;
 		}
 
-		// 0보다 작으면 0으로 만듦;
 		StartX = StartX < 0 ? 0 : StartX;
 		StartY = StartY < 0 ? 0 : StartY;
 		StartZ = StartZ < 0 ? 0 : StartZ;
 
-		if (EndX < 0)
-		{
-			continue;
-		}
-		else if (EndY <0)
-		{
-			continue;
-		}
-		else if (EndZ <0)
-		{
-			continue;
-		}
-
-		// 섹션의 최대값보다 크거나 같으면 섹션의 최대값으로
 		EndX = EndX >= Section->NumX ? Section->NumX - 1 : EndX;
 		EndY = EndY >= Section->NumY ? Section->NumY - 1 : EndY;
 		EndZ = EndZ >= Section->NumZ ? Section->NumZ - 1 : EndZ;
 
-		for (int z = 0; z <= EndZ; z++)
+		for (int z = StartZ; z <= EndZ; ++z)
 		{
-			for (int y = 0; y <= EndY; y++)
+			for (int y = StartY; y <= EndY; ++y)
 			{
-				for (int x = 0; x <= EndZ; x++)
+				for (int x = StartX; x <= EndX; ++x)
 				{
-					// 섹션의 인덱스 구하고
-					int Idx = z * (Section->NumX * Section->NumY) + y * Section->NumX + x;
+					int	idx = z * (Section->NumX * Section->NumY) +
+						y * Section->NumX + x;
 
-					// 해당 섹션의 정보를 가져와서
-					ColliderList* TmpSection = &Section->SectionList[Idx];
+					ColliderList* TmpSection = &Section->SectionList[idx];
 
-					// 사이즈가 작으면 늘리고
+					if (TmpCollider->GetPickEnable())
+					{
+						if (Core::Inst()->GetEditMode())
+							TmpSection = &PickSection->SectionList[idx];
+
+						else
+							continue;
+					}
+
 					if (TmpSection->Size == TmpSection->Capacity)
 					{
 						TmpSection->Capacity *= 2;
 
-						AIMCollider** TmpList = new AIMCollider*[TmpSection->Capacity];
+						AIMCollider** pList = new AIMCollider*[TmpSection->Capacity];
 
-						memcpy(TmpList, TmpSection->List, sizeof(AIMCollider*) * TmpSection->Size);
+						memcpy(pList, TmpSection->List, sizeof(AIMCollider*) * TmpSection->Size);
 
-						if (TmpSection->List != nullptr)
-						{
-							delete[] TmpSection->List;
-							TmpSection->List = nullptr;
-						}
+						delete[] TmpSection->List;
+						TmpSection->List = nullptr;
 
-						TmpSection->List = TmpList;
+						TmpSection->List = pList;
 					}
 
-					// 해당 섹션의 리스트에 이 충돌체를 넣는다.
-					TmpSection->List[TmpSection->Size] = Collider;
+					TmpSection->List[TmpSection->Size] = TmpCollider;
 					++TmpSection->Size;
 				}
 			}
 		}
-
 	}
+}
+
+bool CollisionManager::CollisionMouseUI(float _Time)
+{
+	return false;
+}
+
+bool CollisionManager::CollisionMouseWorld(float _Time)
+{
+	// 마우스 광선을 얻어온다.
+	AIMColliderRay*	pMouseRay = InputManager::GetMouseRay();
+
+	RayInfo	tRayInfo = pMouseRay->GetInfo();
+
+	Vec3	vCollMin, vCollMax;
+	Vec3	vPos1, vPos2;
+	vPos1 = tRayInfo.Origin;
+	vPos2 = tRayInfo.Origin + tRayInfo.Dir * 1500.f;
+
+	vCollMin.x = vPos1.x < vPos2.x ? vPos1.x : vPos2.x;
+	vCollMin.y = vPos1.y < vPos2.y ? vPos1.y : vPos2.y;
+	vCollMin.z = vPos1.z < vPos2.z ? vPos1.z : vPos2.z;
+
+	vCollMax.x = vPos1.x > vPos2.x ? vPos1.x : vPos2.x;
+	vCollMax.y = vPos1.y > vPos2.y ? vPos1.y : vPos2.y;
+	vCollMax.z = vPos1.z > vPos2.z ? vPos1.z : vPos2.z;
+
+	vCollMin /= Section->CellSize;
+	vCollMax /= Section->CellSize;
+
+	int	iStartX = -1, iStartY = -1, iStartZ = -1;
+	int	iEndX = -1, iEndY = -1, iEndZ = -1;
+
+	iStartX = (int)vCollMin.x;
+	iStartY = (int)vCollMin.y;
+	iStartZ = (int)vCollMin.z;
+
+	iEndX = (int)vCollMax.x;
+	iEndY = (int)vCollMax.y;
+	iEndZ = (int)vCollMax.z;
+
+	iStartX = iStartX < 0 ? 0 : iStartX;
+	iStartY = iStartY < 0 ? 0 : iStartY;
+	iStartZ = iStartZ < 0 ? 0 : iStartZ;
+
+	iEndX = iEndX >= Section->NumX ? Section->NumX - 1 : iEndX;
+	iEndY = iEndY >= Section->NumY ? Section->NumY - 1 : iEndY;
+	iEndZ = iEndZ >= Section->NumZ ? Section->NumZ - 1 : iEndZ;
+
+	bool	bEditPick = false;
+
+	if (Core::Inst()->GetEditMode())
+	{
+		for (int z = iStartZ; z <= iEndZ; ++z)
+		{
+			for (int y = iStartY; y <= iEndY; ++y)
+			{
+				for (int x = iStartX; x <= iEndX; ++x)
+				{
+					int	idx = z * (PickSection->NumX * PickSection->NumY) +
+						y * PickSection->NumX + x;
+
+					PColliderList	pSection = &PickSection->SectionList[idx];
+
+					for (int i = 0; i < pSection->Size; ++i)
+					{
+						MouseCollisionList->Add(pSection->List[i]);
+					}
+				}
+			}
+		}
+
+		// 추가된 충돌체들을 거리 순으로 오름차순 정렬한다.
+		qsort(MouseCollisionList->List, MouseCollisionList->Size,
+			sizeof(AIMCollider*), CollisionManager::SortZ);
+
+		for (int i = 0; i < MouseCollisionList->Size; ++i)
+		{
+			AIMCollider*	pDest = MouseCollisionList->List[i];
+
+			if (pMouseRay->Collision(pDest))
+			{
+				if (PrevMousePick && PrevMousePick != pDest)
+				{
+					pMouseRay->DeleteSerialNumber(PrevMousePick->GetSerialNumber());
+					PrevMousePick->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+					DeletePrevCollider(pMouseRay->GetSerialNumber(),
+						PrevMousePick->GetSerialNumber());
+				}
+
+				// 각 충돌체에 서로 충돌된 충돌체라고 등록해준다.
+				// 현재 영역에서 충돌되었다고 등록을 해준다.
+				// 이 리스트는 다음 영역에서 충돌체크시에 이전 영역에서
+				// 충돌되었다면 빠져나가기 위함이다.
+				// 왜냐하면 지금 서로 다른 영역에 걸쳐있을때 앞에 체크한
+				// 영역에서 만약 충돌이 되었다면 이 충돌체는 계속
+				// 충돌상태라고 표현이 되어버리므로 이전 영역에서
+				// 충돌이 되었는지를 판단해야 한다.
+				pMouseRay->AddCollisionList(pDest->GetSerialNumber());
+				pDest->AddCollisionList(pMouseRay->GetSerialNumber());
+
+				// 이전에 충돌되었는지를 판단한다.
+				// 처음 충돌될 경우
+				if (!CheckPrevCollider(pMouseRay->GetSerialNumber(),
+					pDest->GetSerialNumber()))
+				{
+					// 충돌 매트릭스에 이전충돌목록으로
+					// 등록해준다.
+					AddPrevCollider(pMouseRay->GetSerialNumber(),
+						pDest->GetSerialNumber());
+
+					// 각 충돌체에 이전 충돌목록으로 등록한다.
+					pMouseRay->AddSerialNumber(pDest->GetSerialNumber());
+					pDest->AddSerialNumber(pMouseRay->GetSerialNumber());
+
+					// 처음 충돌되었으므로 처음 충돌되었을때 호출할
+					// 콜백을 처리한다.
+					pMouseRay->Call(CCS_BEGIN, pDest, _Time);
+					pDest->Call(CCS_BEGIN, pMouseRay, _Time);
+				}
+
+				// 이전 충돌목록에 있을 경우 계속 충돌상태로
+				// 처리한다.
+				else
+				{
+					// 콜백을 처리한다.
+					pMouseRay->Call(CCS_STAY, pDest, _Time);
+					pDest->Call(CCS_STAY, pMouseRay, _Time);
+				}
+
+				bEditPick = true;
+
+				PrevMousePick = pDest;
+				break;
+			}
+
+			// 충돌이 안된 상태일 경우
+			else
+			{
+				// 이전 충돌목록에 서로 존재할 경우 충돌 되다가
+				// 떨어진다는 것이다.
+				if (CheckPrevCollider(pMouseRay->GetSerialNumber(),
+					pDest->GetSerialNumber()))
+				{
+					// 이전 충돌목록에서 제거해준다.
+					DeletePrevCollider(pMouseRay->GetSerialNumber(),
+						pDest->GetSerialNumber());
+
+					pMouseRay->DeleteSerialNumber(pDest->GetSerialNumber());
+					pDest->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+					// 콜백을 처리한다.
+					pMouseRay->Call(CCS_LEAVE, pDest, _Time);
+					pDest->Call(CCS_LEAVE, pMouseRay, _Time);
+				}
+			}
+		}
+
+		MouseCollisionList->Clear();
+	}
+
+	if (!bEditPick)
+	{
+		if (PrevMousePick)
+		{
+			pMouseRay->DeleteSerialNumber(PrevMousePick->GetSerialNumber());
+			PrevMousePick->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+			DeletePrevCollider(pMouseRay->GetSerialNumber(),
+				PrevMousePick->GetSerialNumber());
+		}
+
+		PrevMousePick = nullptr;
+	}
+
+	for (int z = iStartZ; z <= iEndZ; ++z)
+	{
+		for (int y = iStartY; y <= iEndY; ++y)
+		{
+			for (int x = iStartX; x <= iEndX; ++x)
+			{
+				int	idx = z * (Section->NumX * Section->NumY) +
+					y * Section->NumX + x;
+
+				PColliderList	pSection = &Section->SectionList[idx];
+
+				for (int i = 0; i < pSection->Size; ++i)
+				{
+					MouseCollisionList->Add(pSection->List[i]);
+				}
+			}
+		}
+	}
+
+	// 추가된 충돌체들을 거리 순으로 오름차순 정렬한다.
+	qsort(MouseCollisionList->List, MouseCollisionList->Size,
+		sizeof(AIMCollider*), CollisionManager::SortZ);
+
+	for (int i = 0; i < MouseCollisionList->Size; ++i)
+	{
+		AIMCollider*	pDest = MouseCollisionList->List[i];
+
+		if (pMouseRay->Collision(pDest))
+		{
+			if (PrevMouseCollider && PrevMouseCollider != pDest)
+			{
+				pMouseRay->DeleteSerialNumber(PrevMouseCollider->GetSerialNumber());
+				PrevMouseCollider->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+				DeletePrevCollider(pMouseRay->GetSerialNumber(),
+					PrevMouseCollider->GetSerialNumber());
+			}
+			// 각 충돌체에 서로 충돌된 충돌체라고 등록해준다.
+			// 현재 영역에서 충돌되었다고 등록을 해준다.
+			// 이 리스트는 다음 영역에서 충돌체크시에 이전 영역에서
+			// 충돌되었다면 빠져나가기 위함이다.
+			// 왜냐하면 지금 서로 다른 영역에 걸쳐있을때 앞에 체크한
+			// 영역에서 만약 충돌이 되었다면 이 충돌체는 계속
+			// 충돌상태라고 표현이 되어버리므로 이전 영역에서
+			// 충돌이 되었는지를 판단해야 한다.
+			pMouseRay->AddCollisionList(pDest->GetSerialNumber());
+			pDest->AddCollisionList(pMouseRay->GetSerialNumber());
+
+			// 이전에 충돌되었는지를 판단한다.
+			// 처음 충돌될 경우
+			if (!CheckPrevCollider(pMouseRay->GetSerialNumber(),
+				pDest->GetSerialNumber()))
+			{
+				// 충돌 매트릭스에 이전충돌목록으로
+				// 등록해준다.
+				AddPrevCollider(pMouseRay->GetSerialNumber(),
+					pDest->GetSerialNumber());
+
+				// 각 충돌체에 이전 충돌목록으로 등록한다.
+				pMouseRay->AddSerialNumber(pDest->GetSerialNumber());
+				pDest->AddSerialNumber(pMouseRay->GetSerialNumber());
+
+				// 처음 충돌되었으므로 처음 충돌되었을때 호출할
+				// 콜백을 처리한다.
+				pMouseRay->Call(CCS_BEGIN, pDest, _Time);
+				pDest->Call(CCS_BEGIN, pMouseRay, _Time);
+			}
+
+			// 이전 충돌목록에 있을 경우 계속 충돌상태로
+			// 처리한다.
+			else
+			{
+				// 콜백을 처리한다.
+				pMouseRay->Call(CCS_STAY, pDest, _Time);
+				pDest->Call(CCS_STAY, pMouseRay, _Time);
+			}
+
+			PrevMouseCollider = pDest;
+
+			MouseCollisionList->Clear();
+			return true;
+		}
+
+		// 충돌이 안된 상태일 경우
+		else
+		{
+			// 이전 충돌목록에 서로 존재할 경우 충돌 되다가
+			// 떨어진다는 것이다.
+			if (CheckPrevCollider(pMouseRay->GetSerialNumber(),
+				pDest->GetSerialNumber()))
+			{
+				// 이전 충돌목록에서 제거해준다.
+				DeletePrevCollider(pMouseRay->GetSerialNumber(),
+					pDest->GetSerialNumber());
+
+				pMouseRay->DeleteSerialNumber(pDest->GetSerialNumber());
+				pDest->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+				// 콜백을 처리한다.
+				pMouseRay->Call(CCS_LEAVE, pDest, _Time);
+				pDest->Call(CCS_LEAVE, pMouseRay, _Time);
+			}
+		}
+	}
+
+	if (PrevMouseCollider)
+	{
+		pMouseRay->DeleteSerialNumber(PrevMouseCollider->GetSerialNumber());
+		PrevMouseCollider->DeleteSerialNumber(pMouseRay->GetSerialNumber());
+
+		DeletePrevCollider(pMouseRay->GetSerialNumber(),
+			PrevMouseCollider->GetSerialNumber());
+		PrevMouseCollider = nullptr;
+	}
+
+	MouseCollisionList->Clear();
+
+	return false;
+}
+
+bool CollisionManager::CollisionUI(float _Time)
+{
+	return false;
+}
+
+bool CollisionManager::CollisionWorld(float _Time)
+{
+	for (unsigned int z = 0; z < Section->NumZ; ++z)
+	{
+		for (unsigned int y = 0; y < Section->NumY; ++y)
+		{
+			for (unsigned int x = 0; x < Section->NumX; ++x)
+			{
+				unsigned int	idx = z * (Section->NumX * Section->NumY) +
+					y * Section->NumX + x;
+
+				PColliderList	pSection = &Section->SectionList[idx];
+
+				if (pSection->Size <= 1)
+					continue;
+
+				for (unsigned int i = 0; i < pSection->Size - 1; ++i)
+				{
+					AIMCollider*	pSrc = pSection->List[i];
+					for (unsigned int j = i + 1; j < pSection->Size; ++j)
+					{
+						AIMCollider*	pDest = pSection->List[j];
+
+						// 현재 다른 섹션에서 충돌되었는지를 판단한다.
+						if (pSrc->CheckCollisionList(pDest->GetSerialNumber()))
+							continue;
+
+						// 두 충돌체가 사용하는 Profile을 얻어온다.
+						PCollisionProfile	pSrcProfile = pSrc->GetCollisionProfile();
+						PCollisionProfile	pDestProfile = pDest->GetCollisionProfile();
+
+						PCollisionChannel	pSrcChannel = &pSrcProfile->ChannelList[pDest->GetCollisionChannelIndex()];
+						PCollisionChannel	pDestChannel = &pDestProfile->ChannelList[pSrc->GetCollisionChannelIndex()];
+
+						if (pSrcChannel->State != CCS_IGNORE ||
+							pDestChannel->State != CCS_IGNORE)
+						{
+							if (pSrc->Collision(pDest))
+							{
+								// 각 충돌체에 서로 충돌된 충돌체라고 등록해준다.
+								// 현재 영역에서 충돌되었다고 등록을 해준다.
+								// 이 리스트는 다음 영역에서 충돌체크시에 이전 영역에서
+								// 충돌되었다면 빠져나가기 위함이다.
+								// 왜냐하면 지금 서로 다른 영역에 걸쳐있을때 앞에 체크한
+								// 영역에서 만약 충돌이 되었다면 이 충돌체는 계속
+								// 충돌상태라고 표현이 되어버리므로 이전 영역에서
+								// 충돌이 되었는지를 판단해야 한다.
+								pSrc->AddCollisionList(pDest->GetSerialNumber());
+								pDest->AddCollisionList(pSrc->GetSerialNumber());
+
+								// 이전에 충돌되었는지를 판단한다.
+								// 처음 충돌될 경우
+								if (!CheckPrevCollider(pSrc->GetSerialNumber(),
+									pDest->GetSerialNumber()))
+								{
+									// 충돌 매트릭스에 이전충돌목록으로
+									// 등록해준다.
+									AddPrevCollider(pSrc->GetSerialNumber(),
+										pDest->GetSerialNumber());
+
+									// 각 충돌체에 이전 충돌목록으로 등록한다.
+									pSrc->AddSerialNumber(pDest->GetSerialNumber());
+									pDest->AddSerialNumber(pSrc->GetSerialNumber());
+
+									// 처음 충돌되었으므로 처음 충돌되었을때 호출할
+									// 콜백을 처리한다.
+									if (pSrcChannel->State != CCS_IGNORE)
+										pSrc->Call(CCS_BEGIN, pDest, _Time);
+
+									if (pDestChannel->State != CCS_IGNORE)
+										pDest->Call(CCS_BEGIN, pSrc, _Time);
+								}
+
+								// 이전 충돌목록에 있을 경우 계속 충돌상태로
+								// 처리한다.
+								else
+								{
+									// 콜백을 처리한다.
+									if (pSrcChannel->State != CCS_IGNORE)
+										pSrc->Call(CCS_STAY, pDest, _Time);
+
+									if (pDestChannel->State != CCS_IGNORE)
+										pDest->Call(CCS_STAY, pSrc, _Time);
+								}
+							}
+
+							// 충돌이 안된 상태일 경우
+							else
+							{
+								// 이전 충돌목록에 서로 존재할 경우 충돌 되다가
+								// 떨어진다는 것이다.
+								if (CheckPrevCollider(pSrc->GetSerialNumber(),
+									pDest->GetSerialNumber()))
+								{
+									// 이전 충돌목록에서 제거해준다.
+									DeletePrevCollider(pSrc->GetSerialNumber(),
+										pDest->GetSerialNumber());
+
+									pSrc->DeleteSerialNumber(pDest->GetSerialNumber());
+									pDest->DeleteSerialNumber(pSrc->GetSerialNumber());
+
+									// 콜백을 처리한다.
+									if (pSrcChannel->State != CCS_IGNORE)
+										pSrc->Call(CCS_LEAVE, pDest, _Time);
+
+									if (pDestChannel->State != CCS_IGNORE)
+										pDest->Call(CCS_LEAVE, pSrc, _Time);
+								}
+							}
+						}
+
+						else
+						{
+							if (CheckPrevCollider(pSrc->GetSerialNumber(),
+								pDest->GetSerialNumber()))
+							{
+								// 이전 충돌목록에서 제거해준다.
+								DeletePrevCollider(pSrc->GetSerialNumber(),
+									pDest->GetSerialNumber());
+
+								pSrc->DeleteSerialNumber(pDest->GetSerialNumber());
+								pDest->DeleteSerialNumber(pSrc->GetSerialNumber());
+
+								// 콜백을 처리한다.
+								if (pSrcChannel->State != CCS_IGNORE)
+									pSrc->Call(CCS_LEAVE, pDest, _Time);
+
+								if (pDestChannel->State != CCS_IGNORE)
+									pDest->Call(CCS_LEAVE, pSrc, _Time);
+							}
+						}
+					}
+				}
+
+				pSection->Size = 0;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool CollisionManager::Collision(Ezptr<AIMCollider> _Src, Ezptr<AIMCollider> _Dest)
+{
+	return false;
+}
+
+int CollisionManager::SortZ(const void * _Src, const void * _Dest)
+{
+	AIMCollider* SrcCol = *((AIMCollider**)_Src);
+	AIMCollider* DestCol = *((AIMCollider**)_Dest);
+
+	Vec3 SrcMin = SrcCol->GetSectionMin();
+	Vec3 DestMin = DestCol->GetSectionMin();
+	Vec3 SrcMax = SrcCol->GetSectionMax();
+	Vec3 DestMax = DestCol->GetSectionMax();
+
+	Vec3 SrcCenter = (SrcMin + SrcMax) / 2.0f;
+	Vec3 DestCenter = (DestMin + DestMax) / 2.0f;
+
+	Vec3 CamPos = SceneManager::GetMainCameraPos();
+
+	float SrcDist = SrcCenter.Distance(CamPos);
+	float DestDist = DestCenter.Distance(CamPos);
+
+	if (SrcDist > DestDist)
+	{
+		return 1;
+	}
+	else if (SrcDist < DestDist)
+	{
+		return -1;
+	}
+
+	return 0;
 }

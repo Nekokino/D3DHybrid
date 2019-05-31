@@ -10,6 +10,7 @@ class Engine_DLL __declspec(align(16)) AIMTransform : public AIMComponent
 private:
 	bool bStatic = false;
 	bool bUpdate = true;
+	bool bUI = false;
 	TransformConstBuffer ConstBuffer;
 
 public:
@@ -22,6 +23,13 @@ public:
 	{
 		return bUpdate;
 	}
+
+	bool GetUI() const
+	{
+		return bUI;
+	}
+
+	void UIEnable();
 
 private:
 	Vec3 LocalScale;
@@ -71,6 +79,11 @@ private:
 	Matrix LocalMat;
 
 public:
+	Matrix GetLocalRotationMatrix() const
+	{
+		return LocalRotationMat;
+	}
+
 	Matrix GetLocalMatrix() const
 	{
 		return LocalMat;
@@ -82,6 +95,7 @@ private:
 	Vec3 WorldPosition;
 	Vec3 WorldAxis[AXIS_END];
 	Vec3 WorldView;
+	Vec3 MoveVec;
 	Ezptr<AIMTransform> LookAtTransform;
 	LookAt_Axis LookAtAxis;
 	
@@ -110,6 +124,11 @@ public:
 	Vec3 GetWorldView() const
 	{
 		return WorldView;
+	}
+
+	Vec3 GetMove() const
+	{
+		return MoveVec;
 	}
 
 
@@ -163,6 +182,16 @@ public:
 public:
 	void Move(Axis _Axis, float _Speed, float _Time);
 	void Move(const Vec3& _Dir, float _Speed, float _Time);
+	void Move(const Vec3& _Move);
+	void MoveBack();
+	void Rotation(const Vec3& _Rot, float _Time);
+	void Rotation(const Vec3& _Rot);
+	void RotationX(float _Speed, float _Time);
+	void RotationX(float _Speed);
+	void RotationY(float _Speed, float _Time);
+	void RotationY(float _Speed);
+	void RotationZ(float _Speed, float _Time);
+	void RotationZ(float _Speed);
 	void LookAt(Ezptr<AIMObject> _Obj);
 	void LookAt(Ezptr<AIMComponent> _Com);
 	void RemoveLookAt();

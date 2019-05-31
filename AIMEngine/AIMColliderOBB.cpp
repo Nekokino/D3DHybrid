@@ -197,6 +197,9 @@ bool AIMColliderOBB::Collision(Ezptr<AIMCollider> _Dest)
 	case CT_POINT:
 		return false;
 	case CT_RAY:
+	{
+		int a = 0;
+	}
 		return false;
 	case CT_AABB:
 		return false;

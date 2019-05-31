@@ -97,6 +97,36 @@
     <Filter Include="05 Object\01 Component\09 Particle">
       <UniqueIdentifier>{40150433-ea19-4c9e-bff9-45d7671136f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05 Object\01 Component\10 FrameAnimation">
+      <UniqueIdentifier>{0603700e-d08f-4efb-ac67-b0bd2e5ab63a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\11 LandScape">
+      <UniqueIdentifier>{a51bf5c7-8d47-4061-a5f8-65109bd24c58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\12 Arm">
+      <UniqueIdentifier>{486a71ac-04bf-40cb-9881-fe04d2d2fda8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Navigation">
+      <UniqueIdentifier>{8dee7306-8c34-4744-bc4e-ebd7a75ae007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Navigation\01 Mesh">
+      <UniqueIdentifier>{066accc8-df6a-49e7-8145-226cabd56726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06 Navigation\02 NaviCom">
+      <UniqueIdentifier>{2cb3f482-0d9e-42d5-b5af-c56e8eb70c7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\13 UI">
+      <UniqueIdentifier>{9b02683e-6747-49d0-9179-a9523a8ac3ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\14 Text">
+      <UniqueIdentifier>{42993c76-ff66-445c-8e50-d64e2a7d7a8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\04 Camera\01 Frustrum">
+      <UniqueIdentifier>{7f860546-3713-4c02-b363-f4bd764d501d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05 Object\01 Component\15 Sound">
+      <UniqueIdentifier>{2509bacf-fcf0-40fb-8e67-71db1c10f734}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -258,6 +288,51 @@
     <ClInclude Include="AIMParticle.h">
       <Filter>05 Object\01 Component\09 Particle</Filter>
     </ClInclude>
+    <ClInclude Include="AIMFrameAnimation.h">
+      <Filter>05 Object\01 Component\10 FrameAnimation</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMLandScape.h">
+      <Filter>05 Object\01 Component\11 LandScape</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMArm.h">
+      <Filter>05 Object\01 Component\12 Arm</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationManager.h">
+      <Filter>06 Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationMesh.h">
+      <Filter>06 Navigation\01 Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMNavigation.h">
+      <Filter>06 Navigation\02 NaviCom</Filter>
+    </ClInclude>
+    <ClInclude Include="Heap.h">
+      <Filter>99 Header</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMUI.h">
+      <Filter>05 Object\01 Component\13 UI</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMUIButton.h">
+      <Filter>05 Object\01 Component\13 UI</Filter>
+    </ClInclude>
+    <ClInclude Include="FontManager.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMText.h">
+      <Filter>05 Object\01 Component\14 Text</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMSerialNumber.h">
+      <Filter>99 Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>04 Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMSound.h">
+      <Filter>05 Object\01 Component\15 Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMFrustrum.h">
+      <Filter>05 Object\01 Component\04 Camera\01 Frustrum</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -397,6 +472,48 @@
     </ClCompile>
     <ClCompile Include="AIMParticle.cpp">
       <Filter>05 Object\01 Component\09 Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMFrameAnimation.cpp">
+      <Filter>05 Object\01 Component\10 FrameAnimation</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMLandScape.cpp">
+      <Filter>05 Object\01 Component\11 LandScape</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMArm.cpp">
+      <Filter>05 Object\01 Component\12 Arm</Filter>
+    </ClCompile>
+    <ClCompile Include="NavigationManager.cpp">
+      <Filter>06 Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="NavigationMesh.cpp">
+      <Filter>06 Navigation\01 Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMNavigation.cpp">
+      <Filter>06 Navigation\02 NaviCom</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMUI.cpp">
+      <Filter>05 Object\01 Component\13 UI</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMUIButton.cpp">
+      <Filter>05 Object\01 Component\13 UI</Filter>
+    </ClCompile>
+    <ClCompile Include="FontManager.cpp">
+      <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMText.cpp">
+      <Filter>05 Object\01 Component\14 Text</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMSerialNumber.cpp">
+      <Filter>99 Header</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>04 Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMSound.cpp">
+      <Filter>05 Object\01 Component\15 Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMFrustrum.cpp">
+      <Filter>05 Object\01 Component\04 Camera\01 Frustrum</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

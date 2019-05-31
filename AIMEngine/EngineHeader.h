@@ -12,6 +12,7 @@
 #include <dinput.h>
 #include <crtdbg.h>
 #include <string>
+#include <stack>
 
 
 #pragma comment(lib, "d3d11")
